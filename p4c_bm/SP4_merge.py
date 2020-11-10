@@ -9,9 +9,9 @@
 import p4_hlir.hlir
 import sys
 import copy
+import math
 from pprint import pprint
 import json
-from collections import defaultdict
 from p4_hlir.hlir.dependencies import *
 import p4_hlir.graphs.hlir_info as info
 import p4_hlir.hlir.p4_imperatives as p4_imperatives
@@ -885,14 +885,208 @@ def print_table_names(p4_tables):
 
 def merge_headers(h_mg, h_r, h_meta):
     print 'LOG|MERGE|p4_headers'
-    h_mg.p4_headers.update(h_r.p4_headers)
-    h_mg.p4_headers.update(h_meta.p4_headers)
+    #h_mg.p4_headers.update(h_r.p4_headers)
+    #h_mg.p4_headers.update(h_meta.p4_headers)
 
-
-def merge_header_instances(h_mg, h_r, h_meta):
+def merge_header_instancesCopy(h_mg, h_r, h_meta):
     print 'LOG|MERGE|p4_header instances'
     h_mg.p4_header_instances.update(h_r.p4_header_instances)
     h_mg.p4_header_instances.update(h_meta.p4_header_instances)
+
+
+
+def merge_header_instances(h_mg, h_r, h_meta):
+    added_from_r = []
+    counter = 0
+    header_type_added = []
+    print 'LOG|MERGE|p4_header instances'
+    # For each header in r and mg
+    for header_nameR, header_instR in h_r.p4_header_instances.items():
+	eqType = ''
+	header = ''
+	if  not header_instR.metadata:
+		for header_nameMG, header_instMG in h_mg.p4_header_instances.items():
+			if header_instMG in added_from_r:
+				continue
+			if header_instMG.metadata:
+				continue
+			#if this is second merge, dont find equivalence with virtual flag
+			if header_nameMG == 'upvn':
+				continue
+			#also ignore upvn metadata, may delete later if not needed
+			if header_nameMG == 'upvn_metadata':
+				continue
+			# See if headerMG is in StrongEquivalenceList or SimpleEquivalenceList
+			# if it is, match with next header of MG
+			if header_nameMG in h_r.lStrongEq:
+				continue
+			if header_nameMG in h_r.lSimpleEq.values():
+				continue
+			
+			# Determine equivalence type
+			eqType = check_equivalent_headers(header_instMG, header_instR)
+			if eqType == 'Strong Equivalence' or eqType == 'Simple Equivalence':
+				header = header_nameMG
+	    			break
+			if eqType == 'Weak Equivalence':
+				header = header_nameMG
+
+		if eqType == 'Weak Equivalence':
+			print 'WARNING!! HEADERS MAY BE EQUIVALENT: ', header_nameR, header		 
+			#check_header_and_add(h_mg, h_r, header_instR, header)
+			h_r.lWeakEq[header_nameR] = header
+			added_from_r.append(header_instR)
+			if header_instR.header_type not in header_type_added:
+				header_type_added.append(header_instR.header_type)
+		elif eqType == 'No Equivalence' and header != '':
+			print 'WARNING!! HEADERS MAY BE EQUIVALENT: ', header_nameR, header	
+	 		h_r.lWeakEq[header_nameR] = header
+			#check_header_and_add(h_mg, h_r, header_instR, header)
+			added_from_r.append(header_instR)
+			if header_instR.header_type not in header_type_added:
+				header_type_added.append(header_instR.header_type)
+		elif eqType == 'Strong Equivalence':
+			h_r.lStrongEq[header_nameR] = header
+			added_from_r.append(header_instR)
+			if header_instR.header_type not in header_type_added:
+				header_type_added.append(header_instR.header_type)
+		elif eqType == 'Simple Equivalence':
+			h_r.lSimpleEq[header_nameR] = header
+			added_from_r.append(header_instR)
+			if header_instR.header_type not in header_type_added:
+				header_type_added.append(header_instR.header_type)
+		else:
+			check_header_and_add(h_mg, h_r, header_instR, header)
+			added_from_r.append(header_instR)
+			if header_instR.header_type.name not in h_mg.p4_headers:
+				h_mg.p4_headers[header_instR.header_type.name] = header_instR.header_type
+			else:
+				if header_instR.header_type not in header_type_added:
+					#rename header type and add
+					header_instR.header_type.name = header_instR.name + '_t'
+					h_mg.p4_headers[header_instR.header_type.name] = header_instR.header_type
+					header_type_added.append(header_instR.header_type)
+			
+	#if metadata
+	else:
+		counter = counter + 1
+		if header_nameR == 'standard_metadata':
+			continue
+		for header_nameMG, header_instMG in h_mg.p4_header_instances.items():
+			if header_instMG in added_from_r:
+				continue
+			if not header_instMG.metadata:
+				continue	
+			if header_nameMG == 'standard_metadata':
+				continue
+			eqType = check_equivalent_headers(header_instMG, header_instR)
+			if eqType == 'Strong Equivalence' or eqType == 'Simple Equivalence':
+				header = header_nameMG
+	    			break
+			if eqType == 'Weak Equivalence':
+				header = header_nameMG
+				#break
+		#if it is weak equivalence
+		if eqType == 'Weak Equivalence':
+			print 'WARNING!! HEADERS MAY BE EQUIVALENT: ', header_nameR, header
+			h_r.lWeakEq[header_nameR] = header
+			added_from_r.append(header_instR)
+			if header_instR.header_type not in header_type_added:
+				header_type_added.append(header_instR.header_type)
+		#if some weak equivalence was found in the process, but the final result was no equivalence
+		elif eqType == 'No Equivalence' and header != '':
+			print 'WARNING!! HEADERS MAY BE EQUIVALENT: ', header_nameR, header	
+	 		h_r.lWeakEq[header_nameR] = header
+			added_from_r.append(header_instR)
+			if header_instR.header_type not in header_type_added:
+				header_type_added.append(header_instR.header_type)
+		elif eqType == 'Strong Equivalence':
+			h_r.lStrongEq[header_nameR] = header
+			added_from_r.append(header_instR)
+			if header_instR.header_type not in header_type_added:
+				header_type_added.append(header_instR.header_type)
+		elif eqType == 'Simple Equivalence':
+			h_r.lSimpleEq[header_nameR] = header
+			added_from_r.append(header_instR)
+			if header_instR.header_type not in header_type_added:
+				header_type_added.append(header_instR.header_type)
+		else:
+			check_header_and_add(h_mg, h_r, header_instR, header)
+			added_from_r.append(header_instR)
+			if header_instR.header_type.name not in h_mg.p4_headers:
+				h_mg.p4_headers[header_instR.header_type.name] = header_instR.header_type
+			else:
+				if header_instR.header_type not in header_type_added:
+					#rename header type and add
+					header_instR.header_type.name = header_instR.name + '_t'
+					h_mg.p4_headers[header_instR.header_type.name] = header_instR.header_type
+					header_type_added.append(header_instR.header_type)
+    #h_mg.p4_header_instances.update(h_meta.p4_header_instances)
+    h_mg.p4_header_instances['upvn'] = h_meta.p4_header_instances['upvn']
+    h_mg.p4_headers['upvn_t'] = h_meta.p4_headers['upvn_t']
+    
+    h_mg.p4_header_instances['upvn_metadata'] = h_meta.p4_header_instances['upvn_metadata']
+    h_mg.p4_headers['upvn_metadata_t'] = h_meta.p4_headers['upvn_metadata_t']
+    #h_mg.p4_header_instances['shadow_metadata'] = h_meta.p4_header_instances['shadow_metadata']
+	
+
+def check_header_and_add(h_mg, h_r, header_instR, header):
+	#If header name already exists, rename to add
+	if header_instR.name in h_mg.p4_header_instances:
+		newName = header_instR.name + 'NEW'
+		header_instR.name = newName
+		header_instR.base_name = newName
+		if header != '':
+			h_r.lWeakEq[newName] = header 
+		h_mg.p4_header_instances[newName] = header_instR
+	else:
+		h_mg.p4_header_instances[header_instR.name] = header_instR
+
+	
+
+def check_equivalent_headers(header_instMG, header_instR):
+	sameWidthFields = True
+	sameNameFields = True
+	#if same number of fields, check if they are simple/strong equivalent, or weakly equivalent
+	if len(header_instR.fields) == len(header_instMG.fields):
+		if header_instMG.name != header_instR.name:
+			sameNameFields = False
+		mg_length = 0
+		r_length = 0
+		for i in xrange(len(header_instMG.fields)):
+			mg_length += header_instMG.fields[i].width
+			r_length += header_instR.fields[i].width
+			if header_instMG.fields[i].width != header_instR.fields[i].width:
+				sameWidthFields = False
+			if header_instMG.fields[i].name != header_instR.fields[i].name:
+				sameNameFields = False
+			
+		#if at the end of the cycle, sameWidthFields is still true, 
+		#then headers are either strong or simply equivalent
+		if sameWidthFields:
+			if sameNameFields:
+				return 'Strong Equivalence'
+			else:
+				return 'Simple Equivalence'
+		#if individual field width is different but total width is the same, headers are weakly equivalent
+		elif mg_length == r_length:
+			return 'Weak Equivalence'
+	
+	#if length is different, headers can be weakly equivalent at most
+	else:
+		mg_length = 0
+		r_length = 0
+		for i in xrange(len(header_instMG.fields)):
+			mg_length += header_instMG.fields[i].width
+			
+
+		for i in xrange(len(header_instR.fields)):
+			r_length += header_instR.fields[i].width
+
+		if mg_length == r_length:
+			return  'Weak Equivalence'
+	return 'No Equivalence'
+		 
 
 
 # for both AB and Diff merging
@@ -918,9 +1112,9 @@ def AB_merge_p4_tables(h_mg, h_r, h_meta):
     print '    DBG in-/egress_ptr_s:', ingress_ptr_s.name, h_mg.p4_egress_ptr
     # pprint( vars( h_meta.p4_tables['shadow_traffic_control'] ))
     for e in h_mg.p4_tables["shadow_traffic_control"].next_:
-        if e.name == 'SP4_add_shadow_tag' or e.name == 'goto_testing_pipe':
+        if e.name == 'SP4_add_upvn' or e.name == 'goto_testing_pipe':
             h_mg.p4_tables["shadow_traffic_control"].next_[e] = h_mg.p4_nodes[ingress_ptr_s.name]    
-        if e.name == 'SP4_remove_shadow_tag' or e.name == 'goto_production_pipe':
+        if e.name == 'SP4_remove_upvn' or e.name == 'goto_production_pipe':
             h_mg.p4_tables["shadow_traffic_control"].next_[e] = h_mg.p4_nodes[ingress_ptr_r.name]
         print 'LOG|MERGE|add STC nexts:', h_mg.p4_tables["shadow_traffic_control"].next_[e]
         pass
@@ -931,6 +1125,16 @@ def AB_merge_p4_tables(h_mg, h_r, h_meta):
     ingress_ptr_value = h_mg.p4_ingress_ptr[ingress_ptr_s].union(h_r.p4_ingress_ptr[ingress_ptr_r])
     h_mg.p4_ingress_ptr.clear()
     h_mg.p4_ingress_ptr[ingress_ptr_key] = ingress_ptr_value
+
+    # SECTION ADDED BY DUARTE SEQUEIRA
+    # MERGE EGRESS STAGE STARTING FROM META CONDITIONAL NODE
+
+    egress_ptr_s = h_mg.p4_egress_ptr 
+    h_mg.p4_egress_ptr = h_mg.p4_conditional_nodes["_condition_0"]
+    h_mg.p4_egress_ptr.next_[True] = egress_ptr_s
+    h_mg.p4_egress_ptr.next_[False] = h_r.p4_egress_ptr
+    
+    return 
 
 def set_parser_default_table_STC(p4_parse_states, h_mg):
 
@@ -946,7 +1150,9 @@ def set_parser_default_table_STC(p4_parse_states, h_mg):
                     parser_state.branch_to[branch_case] = h_mg.p4_tables['shadow_traffic_control']
             else:
                 # print 'DBG|SP4_Merge|Parser: type branch_case', type(branch_case), branch_case
-                pass
+                if isinstance(next_state, p4_hlir.hlir.p4_tables.p4_conditional_node) or \
+                   isinstance(next_state, p4_hlir.hlir.p4_tables.p4_table):
+			parser_state.branch_to[branch_case] = h_mg.p4_tables['shadow_traffic_control']
 
 
 def rename_parser_states(p4_parse_states, h_mg):
@@ -1022,10 +1228,9 @@ def rename_parser_states(p4_parse_states, h_mg):
 
             print 'DBG|007: select cases', select_cases, type(select_cases)
 
-    
-def merge_parser_states(h_mg, h_r, h_meta):
-
-    ## 01 check the two P4 program start from the same parser state
+#Original parse state merge for P4Visor
+def merge_parser_statesOriginal(h_mg, h_r, h_meta):
+	## 01 check the two P4 program start from the same parser state
     if 'start' not in h_mg.p4_parse_states.keys() or \
        'parse_ethernet' not in h_mg.p4_parse_states.keys():
         print 'ERR|p4c_bm|SP4_merge: missing parse_ethernet in testing P4 program'
@@ -1046,29 +1251,29 @@ def merge_parser_states(h_mg, h_r, h_meta):
                                 h_meta.p4_parse_states['parse_ethernet'].branch_on
 
     ## 03 add meta parser state
-    h_mg.p4_parse_states['parse_shadow_tag'] = h_meta.p4_parse_states['parse_shadow_tag']
+    h_mg.p4_parse_states['parse_upvn'] = h_meta.p4_parse_states['parse_upvn']
     
-    # copy parse_eth's branch_to to parse_shadow_tag
+    # copy parse_eth's branch_to to parse_upvn
     parse_state_eth = h_mg.p4_parse_states['shadow_parse_ethernet']
     eth_branch_to = parse_state_eth.branch_to
-    h_mg.p4_parse_states['parse_shadow_tag'].branch_to.clear()
-    h_mg.p4_parse_states['parse_shadow_tag'].branch_to.update(eth_branch_to)
+    h_mg.p4_parse_states['parse_upvn'].branch_to.clear()
+    h_mg.p4_parse_states['parse_upvn'].branch_to.update(eth_branch_to)
 
     # clear parse_eth's branch_to then add shadow tag state(0x8100)
     parse_state_eth.branch_to.clear()
     branch_case = 0x8100
-    next_state = h_mg.p4_parse_states['parse_shadow_tag']
+    next_state = h_mg.p4_parse_states['parse_upvn']
     parse_state_eth.branch_to[branch_case] = next_state
 
     branch_case_default = p4_hlir.hlir.p4_parser.P4_DEFAULT
     next_state_default = h_mg.p4_tables['shadow_traffic_control']
     parse_state_eth.branch_to[branch_case_default] = next_state_default
 
-    # fix the call sequence of parse_shadow_tag 
+    # fix the call sequence of parse_upvn 
     # TO improve 
-    parse_state = h_mg.p4_parse_states['parse_shadow_tag']
+    parse_state = h_mg.p4_parse_states['parse_upvn']
     op_type = p4_hlir.hlir.p4_parser.parse_call.extract
-    op_header = h_mg.p4_header_instances['shadow_tag']
+    op_header = h_mg.p4_header_instances['upvn']
     call = op_type, op_header
     parse_state.call_sequence = []
     parse_state.call_sequence.append(call)
@@ -1095,6 +1300,1361 @@ def merge_parser_states(h_mg, h_r, h_meta):
     if OPT_PRINT_MERGED_PARSER:
         print '\n\n\nDBG|merge parser|print merged parser|:'
         printOrderedDict(h_mg.p4_parse_states)
+    
+
+#break p4c_bm/SP4_merge.py:1314
+
+def merge_parser_states(h_mg, h_r, h_meta, virtual):  		
+    #if its the first time merging, modify h_mg (at this point, its a perfect copy of h_s)
+    first_merge = 'parse_upvn' not in h_mg.p4_parse_states
+    if first_merge:
+	    #use pvid for now
+	    h_mg.p4_parse_states['parse_upvn'] = h_meta.p4_parse_states['parse_upvn']
+	 
+	    branch_case_default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+	    #if start state has select statement , ie. current(0, n), pass it to upvn state with added id
+	    if h_mg.p4_parse_states['start'].branch_on != []:
+		    #pass the branch_to from start to parse_upvn
+		    for key, state in h_mg.p4_parse_states['start'].branch_to.items():
+		    	h_mg.p4_parse_states['parse_upvn'].branch_to[key] = state
+		    #copy select field from start to parse_upvn
+		    h_mg.p4_parse_states['parse_upvn'].branch_on.append(h_mg.p4_parse_states['start'].branch_on[0])
+		    h_mg.p4_parse_states['start'].branch_on = []
+		    tempDict = OrderedDict()
+		    tempDict[branch_case_default] = h_mg.p4_parse_states['parse_upvn']
+		    h_mg.p4_parse_states['start'].branch_to = tempDict
+		    set_parser_default_table_STC(h_mg.p4_parse_states, h_mg)
+		    add_shadow_field_to_states(h_mg)
+	   
+	    #if start has default transition to ethernet
+	    else: 
+		    parse_eth_state = h_mg.p4_parse_states['start'].branch_to[branch_case_default]
+		    h_mg.p4_parse_states['start'].branch_to.clear()
+		    h_mg.p4_parse_states['start'].branch_to[branch_case_default] = h_mg.p4_parse_states['parse_upvn']
+		    
+		    
+		    #add select fields and transitions to upvn state, i.e.,
+		    #select(upvn.pvid)
+		    #1 : parse_ethernet
+		    tempDict = OrderedDict()
+		    tempDict[branch_case_default] = parse_eth_state
+		    h_mg.p4_parse_states['parse_upvn'].branch_to = tempDict
+		    
+
+		    ## 04 add real parser states in, used shadow_start as the merged start state
+		    set_parser_default_table_STC(h_mg.p4_parse_states, h_mg)
+		    add_shadow_field_to_states(h_mg)
+
+    set_parser_default_table_STC(h_r.p4_parse_states, h_mg)
+    #set everything back to 0
+    if not first_merge:
+    	clear_topo_order(h_mg)
+    fill_topo_order(h_mg, h_r)
+    extract = p4_hlir.hlir.p4_parser.parse_call.extract
+    sort_parser_states(h_r, h_mg)
+
+    for parser_nameR, parser_stateR in h_r.p4_parse_states.items():
+	if parser_nameR == 'start':
+            	continue
+	#if the start state has default transition to first state
+	if parser_stateR.topo_level == 1 and h_r.p4_parse_states['start'].branch_on == []:
+		width = 0
+		fill = ''
+		#if the current parse upvn state is selecting on current
+		if len(h_mg.p4_parse_states['parse_upvn'].branch_on) != 1:
+			width = h_mg.p4_parse_states['parse_upvn'].branch_on[1][1] - h_mg.p4_parse_states['parse_upvn'].branch_on[1][0]
+			fill = fill.zfill(width)
+		if first_merge:
+			pvid = '1111' + fill
+			mask = '1111' + fill
+			h_mg.p4_parse_states['parse_upvn'].branch_to[(int(pvid,2) , int(mask,2))] = parser_stateR
+			parser_stateR.prev.add(h_mg.p4_parse_states['parse_upvn'])
+		else:
+			pvid = bin(int(virtual,16))[2:].zfill(4) + fill
+			mask = '1111' + fill
+			h_mg.p4_parse_states['parse_upvn'].branch_to[(int(pvid, 2), int(mask,2))] = parser_stateR
+			parser_stateR.prev.add(h_mg.p4_parse_states['parse_upvn'])
+
+		
+	#case where start selects on current(0,n)
+	elif h_r.p4_parse_states['start'] in parser_stateR.prev:
+		add_current_to_upvn(h_mg, h_r.p4_parse_states['start'], first_merge, virtual)
+		
+	header_R = ''
+	#if the node is purely conditional
+	if parser_stateR.call_sequence == []:
+		pass
+	#If header has an equivalent in mg, find and share state
+	elif parser_stateR.call_sequence[0][0] == extract:
+		header_R = parser_stateR.call_sequence[0][1].name
+	if header_R in h_r.lStrongEq:
+		share_state(h_r, h_mg, parser_stateR, h_r.lStrongEq[header_R], h_meta, first_merge, virtual)
+	elif header_R in h_r.lSimpleEq:
+		share_state(h_r, h_mg, parser_stateR, h_r.lSimpleEq[header_R], h_meta, first_merge, virtual)
+	elif header_R in h_r.lWeakEq:
+		share_weakly_equivalent_states(h_r, h_mg, parser_stateR, header_R, h_r.lWeakEq[header_R], h_meta, first_merge, virtual)
+	else:
+		rename_and_add_state(h_r, h_mg, parser_stateR, h_meta, first_merge, virtual)
+
+    print
+
+#function used to sort h_r states by topological level,
+#ensuring states are added in the correct sequence
+def sort_parser_states(h_r, h_mg):
+	#this dict contains the states of h_r, organized by topological level
+	#e.g., (0,[start]),(1,[ethernet]),(2,[ipv4]),(3,[tcp,udp])
+	topo_level_dict = OrderedDict()
+	for name, state in h_r.p4_parse_states.items():
+		level = state.topo_level
+		if level not in topo_level_dict:
+			topo_level_dict[level]= [state]
+		else:
+			topo_level_dict[level].append(state)
+
+	#sorted dict containing all states
+	newDict = OrderedDict()
+	#for each topological level of the graph
+	for i in range(len(topo_level_dict)):
+		#if only one state in this topo level
+		if len(topo_level_dict[i]) == 1:
+			#simply append to the dict
+			newDict[topo_level_dict[i][0].name] = topo_level_dict[i][0]
+
+		#if multiple states are at the same level, sort based on 
+		#the topo lovel of the equivalent state in h_mg
+		else:
+			sorted_topo_level = sort_same_topo_level(topo_level_dict[i], h_mg, h_r)
+			for state in sorted_topo_level:
+				newDict[state.name] = state
+
+	h_r.p4_parse_states = newDict
+
+
+#break p4c_bm/SP4_merge.py:1420
+#sort states at the same topological level to determine the
+#order in which the states must be added
+def sort_same_topo_level(states, h_mg, h_r):
+	extract = p4_hlir.hlir.p4_parser.parse_call.extract
+	final_list = []
+	level_list = []
+	for stateR in states:
+		#extracted header in the state
+		if stateR.call_sequence[0][0] == extract:
+			headerR = stateR.call_sequence[0][1]
+		#no extracted header, state won't be shared, so it can be 
+		#added first		
+		else:
+			final_list.insert(0,stateR)
+			#level of equivalent state is defined as 0
+			level_list.insert(0,0)
+			continue
+		#in case a header is extracted, see if there is an equivalent
+		#header
+		headerMG = ''
+		headerMG = get_eq_header_in_mg(h_mg, h_r, headerR)
+
+		#if no equivalent header was found, no equivalent state exists,
+		#state can be added first
+		if headerMG == '':
+			final_list.insert(0,stateR)
+			#level of equivalent state is defined as 0
+			level_list.insert(0,0)
+			continue
+		#if there is an equivalent header, find equivalent state and its
+		#topo level, and place in the correct position
+		else:
+			stateMG = ''
+			for _, stateTemp in h_mg.p4_parse_states.items():
+				if len(stateTemp.call_sequence) > 0:
+					if stateTemp.call_sequence[0][1].name == headerMG :
+						stateMG = stateTemp
+						break
+
+			#if no equivalent state, added first
+			if stateMG == '':
+				final_list.insert(0,stateR)
+				#level of equivalent state is defined as 0
+				level_list.insert(0,0)
+				continue
+
+			mg_topo = stateMG.topo_level
+			found = False
+			for i in range(len(level_list)):
+				#if the level at index i is equal or greater,
+				#it means the current state must be added before
+				if mg_topo <= level_list[i]:
+					final_list.insert(i, state)
+					level_list.insert(i, mg_topo)
+					found = True
+					break
+			#if no state (so far) has an equal or higher equivalent topo
+			#level, the state must be added last
+			if not found:
+				final_list.append(state)
+				level_list.append(mg_topo)
+
+	return final_list
+			
+		
+#returns the equivalent header in h_mg, if it exists			
+def get_eq_header_in_mg(h_mg, h_r, headerR):
+	if headerR.name in h_r.lStrongEq:
+		headerMG_name = h_r.lStrongEq[headerR.name]
+		return h_mg.p4_header_instances[headerMG_name]
+
+	elif headerR.name in h_r.lSimpleEq:
+		headerMG_name = h_r.lSimpleEq[headerR.name]
+		return h_mg.p4_header_instances[headerMG_name]
+
+	elif headerR.name in h_r.lWeakEq:
+		headerMG_name = h_r.lWeakEq[headerR.name]
+		return h_mg.p4_header_instances[headerMG_name]
+
+	return ''
+
+def get_select_size(state):
+	size = 0
+	if state.branch_on == []:
+		return 0
+	else:
+		for field in state.branch_on:
+			if not isinstance(field, tuple):
+				size = size + field.width
+			else:
+				size = size + (field[1] - field[0])
+		return size
+
+
+def calculate_transitions(hlir):
+	counter = 0
+	min_size = 100000000
+	max_size = 0
+	total = 0
+	counter_select = 0
+	f = open('tmpText.txt', 'w')
+	for _, state in hlir.p4_parse_states.items():		
+		size = get_select_size(state)
+		total = total + size
+		#counter = counter + ((size / 33) + 1 ) * len(state.branch_to)	
+		counter = counter + len(state.branch_to)
+		f.write('--------------States and transitions:--------\n')
+		#f.write(state.name + ' ----> ' + str(((size / 33) + 1 ) * len(state.branch_to)) + '\n')
+		f.write(state.name + ' ----> ' +  str(len(state.branch_to)) + '\n')
+		if len(state.branch_on) == 0:
+			continue	
+		counter_select = counter_select + 1	
+		if size >= max_size:
+			max_size = size
+		if size <= min_size:
+			min_size = size
+	avg = total / counter_select
+	f.close()
+	return avg, max_size, min_size, counter
+
+def get_eval(hlir):
+	avg, s_max, s_min, transitions = calculate_transitions(hlir)
+	states = len(hlir.p4_parse_states)
+	headers =len(hlir.p4_header_instances)
+	return avg, s_max, s_min, transitions, states, headers
+
+def share_weakly_equivalent_states(h_r, h_mg, parser_stateR, header_nameR, header_nameMG, h_meta, first_merge, virtual):
+	diff_fields = []
+	headerR = h_r.p4_header_instances[header_nameR]
+	headerMG = h_mg.p4_header_instances[header_nameMG]
+	for fieldR in headerR.fields:	
+		offsetR = fieldR.offset
+		widthR = fieldR.width
+		found = False
+		for fieldMG in headerMG.fields:
+			 if fieldMG.offset == offsetR and fieldMG.width == widthR:
+				found = True
+				break
+		if not found:
+			diff_fields.append(fieldR)
+
+	 
+	state_MG = ''
+	for _, stateTemp in h_mg.p4_parse_states.items():
+		if len(stateTemp.call_sequence) > 0:
+			if stateTemp.call_sequence[0][1].name == header_nameMG :
+				state_MG = stateTemp
+				break
+
+	#if there is no select statement on both states, share state normally
+	if parser_stateR.branch_on == [] and len(state_MG.branch_on) == 1:
+		share_state(h_r, h_mg, parser_stateR, header_nameMG, h_meta, first_merge, virtual)
+	#if there is select statement:
+	else:
+		same = True
+		#see if each field used is present in merged header
+		for field in parser_stateR.branch_on:
+			if field in diff_fields:
+				same = False
+
+		#see if every field used in mg is present in R
+		for field in state_MG.branch_on:
+			if field.name == 'upvn':
+				pass
+			fieldsR = get_fields(field, headerR)
+			if len(fieldsR) > 1:
+				same = False
+				break
+			if fieldsR[0].offset != field.offset or fieldsR[0].width != field.width:
+				same = False
+				break 
+		#if there is a direct translation from these fields to the ones in the merged header, normal share
+		if same:
+			share_state(h_r, h_mg, parser_stateR, header_nameMG, h_meta, first_merge, virtual)
+
+		#edge case: must translate from header_R fields to merged header fields to select correctly		
+		else:
+			#see if states can be shared
+			#check if uses same metadata
+			if check_same_metadata(h_r,h_mg, parser_stateR):
+				rename_and_add_state(h_r, h_mg, parser_stateR, h_meta, first_merge, virtual)
+				return
+			#check if multiple extracted headers are all equivalent
+			if not same_extracted_headers(h_r, parser_stateR, state_MG):
+				rename_and_add_state(h_r, h_mg, parser_stateR, h_meta, first_merge, virtual)
+				return 
+			if not correct_topo_level(parser_stateR, state_MG, h_r, h_mg):
+				rename_and_add_state(h_r, h_mg, parser_stateR, h_meta, first_merge, virtual)
+				return
+
+			h_r.topo_level = parser_stateR.topo_level
+			h_mg.topo_level = state_MG.topo_level
+
+			fields_to_add = get_fields_to_add(parser_stateR, headerMG)
+			modify_mg_transitions(state_MG, fields_to_add)
+			modify_r_transitions(parser_stateR, state_MG, headerR, first_merge, virtual)
+			#add transitions		
+			for key, state in parser_stateR.branch_to.items():
+				h_mg.p4_parse_states[state_MG.name].branch_to[key] = state
+				if not isinstance(state, p4_hlir.hlir.p4_table):
+					state.prev.add(state_MG)
+					
+						
+			
+			#Change parse state object in previous transitions
+			for state in parser_stateR.prev:
+				for key, tempState in state.branch_to.items():
+					if tempState == parser_stateR:
+						state.branch_to[key] = state_MG
+
+			#add translation between old and new name
+			h_r.merged_map[parser_stateR.name] = state_MG.name 
+
+	
+
+#fields_to_add: list of fields from mg that contain the field from header_R 
+#example: field_R = [0:3]; header_mg = [(f1, [0:2]),(f2, [3:5])] -> mg_diff = [f1,f2]
+def get_fields_to_add(parser_stateR, headerMG):
+	fields_to_add = []
+	for fieldR in parser_stateR.branch_on:
+		for fieldMG in headerMG.fields:
+			if fieldMG.offset > fieldR.offset + fieldR.width -1 or fieldMG.offset + fieldMG.width -1 < fieldR.offset:
+				pass
+			else:
+				fields_to_add.append(fieldMG)
+	return fields_to_add
+
+#every transition must change
+def modify_r_transitions(parser_stateR, state_MG, headerR, first_merge, virtual):
+	tempDict = OrderedDict()
+	default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+	widthMG = 0
+	for field in state_MG.branch_on:
+		if field.name == 'pvid':
+			continue
+		widthMG = widthMG + field.width
+	widthR = 0
+	for field in parser_stateR.branch_on:
+		widthR = widthR + field.width
+
+	for key, next_state in parser_stateR.branch_to.items():
+		if isinstance(key, int):
+			realKey = format(key, 'b')
+			realKey = realKey.zfill(widthR)
+			newKey = ''
+			newMask = ''
+			for field in state_MG.branch_on:	
+				fields_r = get_fields(field, headerR) 
+				if field.name == 'pvid':
+					continue
+				for fieldR in fields_r:	
+					select_offsetR = get_start_in_select(fieldR, parser_stateR)				
+					field_start = fieldR.offset
+					field_end = field_start + fieldR.width - 1
+					for i in range(fieldR.width):
+						if field_start + i < field.offset or field_start + i > field.offset + field.width - 1:
+							pass
+						else:
+							if fieldR in parser_stateR.branch_on:
+
+								newKey = newKey + realKey[select_offsetR + i]
+								newMask = newMask + '1'
+							else:
+								newKey = newKey + '0'
+								newMask = newMask + '0'
+			flag = ''
+			if first_merge:
+				flag = '1111'
+			else:
+				flag = bin(int(virtual,16))[2:].zfill(4)
+			newKey = flag + newKey
+			newMask = '1111' + newMask
+			tempDict[(int(newKey, 2), int(newMask,2))] = next_state
+
+		if key == default:
+			flag = ''
+			if first_merge:
+				flag = '1111'
+			else:
+				flag = bin(int(virtual,16))[2:].zfill(4)
+			padding = ''.zfill(widthMG)
+			newKey = flag + padding
+			newMask = '1111' + padding
+			tempDict[(int(newKey, 2), int(newMask,2))] = next_state
+
+	parser_stateR.branch_to = tempDict
+
+def get_start_in_select(fieldR, stateR):
+	offset = 0
+	for field in stateR.branch_on:
+		if field != fieldR:
+			if isinstance(field, tuple):
+				offset = offset + field[1] - field[0]
+			else:
+				offset = offset + field.width
+		else:
+			return offset
+#get list of fields in header from R that include this field from MG
+def get_fields(fieldMG, headerR):
+	fields = []
+	for fieldR in headerR.fields:
+		if fieldR.offset > fieldMG.offset + fieldMG.width -1 or fieldR.offset + fieldR.width -1 < fieldMG.offset:
+			pass
+		else:
+				fields.append(fieldR)
+	return fields
+
+
+def modify_mg_transitions(state_MG, fields_to_add):
+	same = True
+	for field in fields_to_add:
+		if field not in state_MG.branch_on:
+			same = False
+	if not same:	
+		for field in fields_to_add:
+			tempDict = OrderedDict()
+			if field not in state_MG.branch_on:
+				state_MG.branch_on.append(field)
+				for key_mask, next_state in state_MG.branch_to.items():
+					key = key_mask[0]
+					mask = key_mask[1]
+					key = format(key, 'b')
+					mask = format(mask, 'b')
+					padding = ''.zfill(field.width)
+					key = key + padding
+					mask = mask + padding
+					tempDict[(int(key,2), int(mask,2))] = next_state
+		
+				state_MG.branch_to = tempDict
+
+
+def add_current_to_upvn(h_mg, start, first_merge, virtual):
+	default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+	#verify if parse_upvn already has a current(0,n) select field
+	if len(h_mg.p4_parse_states['parse_upvn'].branch_on) != 1:
+		#if the same key is present, just add transitions with pvid
+		if start.branch_on[0] in h_mg.p4_parse_states['parse_upvn'].branch_on:
+			width = start.branch_on[0][1] - start.branch_on[0][0]	
+			#hex_width = 0
+			#if width % 4 != 0:
+				#hex_width = width / 4 + 1
+			#else:
+				#hex_width = width / 4				
+			for key, state in start.branch_to.items():
+				newKey = ''
+				if first_merge:
+					newKey = format(int('f', 16), 'b')
+				else:
+					newKey = format(int(virtual, 16), 'b')
+				
+				if key == default:
+					fill = ''
+					fill = fill.zfill(width)
+					newKey = newKey + fill
+					mask = '1111' + fill
+				else:
+					bin_key = format(key, 'b')
+					bin_key = bin_key.zfill(width)
+					newKey = newKey + bin_key
+					mask = '1' * (4 + width)
+
+				#add transition to upvn state
+				h_mg.p4_parse_states['parse_upvn'].branch_to[(int(newKey, 2), int(mask, 2))] = state
+				if not isinstance(state, p4_hlir.hlir.p4_table): 
+					state.prev.add(h_mg.p4_parse_states['parse_upvn'])
+
+		# if both states have different current(x,y) selects, create new current with 'x' as the minimum 'x' from 
+		# both states and 'y' as the maximum between 'y's. Then add padding for each transition depending on the
+		# new bits selected on
+		else:	
+			mg_current = h_mg.p4_parse_states['parse_upvn'].branch_on[1]
+			r_current = start.branch_on[0]
+			new_x = min(mg_current[0], r_current[0])
+			new_y = max(mg_current[1], r_current[1])
+			new_current = (new_x, new_y)
+
+			#process for mg (add padding for new bits selected on) if needed
+			if new_current != mg_current:
+				add_left = mg_current[0] - new_x
+				add_right = new_y - mg_current[1]
+				newDict = OrderedDict()
+				for key, next_state in h_mg.p4_parse_states['parse_upvn'].branch_to.items():
+					pvid = format(key[0], 'b')[:4]
+					original = format(key[0], 'b')[4:]
+					original = '0' * add_left + original
+					original = original + '0' * add_right
+					new_value = pvid + original
+
+					mask = format(key[0], 'b')[4:]
+					mask = '0' * add_left + mask
+					mask = mask + '0' * add_right
+					new_mask = '1111' + mask
+
+					newDict[(int(new_value,2), int(new_mask,2))] = next_state
+				
+				h_mg.p4_parse_states['parse_upvn'].branch_to = newDict
+
+			#process for r (add padding for new bits selected on) if needed, add pvid and merge
+			width = r_current[1] - r_current[0]
+			add_left = r_current[0] - new_x
+			add_right = new_y - r_current[1]
+			pvid = ''
+			if first_merge:
+				pvid = format(int('f', 16), 'b')
+			else:
+				pvid = format(int(virtual, 16), 'b')
+			for key, next_state in start.branch_to.items():
+				if isinstance(key, int):
+					original = format(key, 'b').zfill(width)
+					original = '0' * add_left + original
+					original = original + '0' * add_right
+					new_value = pvid + original
+					
+					mask = '1' * width
+					mask = '0' * add_left + mask
+					mask = mask + '0' * add_right
+					new_mask = '1111' + mask
+					
+					h_mg.p4_parse_states['parse_upvn'].branch_to[(int(new_value, 2), int(new_mask, 2))] = next_state
+				elif key == default:
+					new_width = new_y - new_x
+					new_value = pvid + ''.zfill(new_width)
+					new_mask = '1111' + ''.zfill(new_width)
+
+					h_mg.p4_parse_states['parse_upvn'].branch_to[(int(new_value, 2), int(new_mask, 2))] = next_state
+
+			h_mg.p4_parse_states['parse_upvn'].branch_on.remove(mg_current)
+			h_mg.p4_parse_states['parse_upvn'].branch_on.append(new_current)
+
+	#if there is no current in the parse_upvn state, add and modify transitions
+	else:
+		h_mg.p4_parse_states['parse_upvn'].branch_on.append(start.branch_on[0])
+		width = start.branch_on[0][1] - start.branch_on[0][0]	
+		#hex_width = 0
+		#if width % 4 != 0:
+			#hex_width = width / 4 + 1
+		#else:
+			#hex_width = width / 4	
+	
+		padding = ''
+		padding = padding.zfill(width)
+		tempDict = OrderedDict()
+		for key, state in h_mg.p4_parse_states['parse_upvn'].branch_to.items():
+			keyOld = format(key[0], 'b')
+			keyNew = keyOld + padding
+			mask = 	'1111' + padding
+			tempDict[(int(keyNew,2), int(mask,2))] = state
+		h_mg.p4_parse_states['parse_upvn'].branch_to = tempDict
+
+		#add transitions from h_r
+		for key, state in start.branch_to.items():
+			newKey = ''
+			if first_merge:
+				newKey = format(int('f', 16), 'b')
+			else:
+				newKey = format(int(virtual, 16), 'b')
+				
+			if key == default:
+				fill = ''
+				fill = fill.zfill(width)
+				newKey = newKey + fill
+				mask = '1111' + fill
+			else:
+				bin_key = format(key, 'b')
+				bin_key = bin_key.zfill(width)
+				newKey = newKey + bin_key
+				mask = '1' * (4 + width)
+
+			#add transition to upvn state
+			h_mg.p4_parse_states['parse_upvn'].branch_to[(int(newKey, 2), int(mask,2))] = state
+			if not isinstance(state, p4_hlir.hlir.p4_table):
+				state.prev.add(h_mg.p4_parse_states['parse_upvn'])
+			
+
+def add_shadow_field_to_states(h_mg):
+	for _, state in h_mg.p4_parse_states.items():
+		if state.name == 'start':
+			continue
+		if state.return_statement[0] != 'immediate' and state.name != 'parse_upvn':
+			state.branch_on.insert(0, h_mg.p4_header_instances['upvn'].fields[0])
+		add_select_fields_2(h_mg, state)	
+
+def rename_and_add_state(h_r, h_mg, parse_stateR, h_meta, first_merge, virtual):
+	#check special case where eq headers could not be extracted by eq states
+	extract = p4_hlir.hlir.p4_parser.parse_call.extract
+	for call in parse_stateR.call_sequence:
+		if call[0] == extract:
+			#check if the header is in the current dictionary
+			header = call[1]
+			if header.name not in h_mg.p4_header_instances:
+				#add header instance and type to h_mg
+				check_header_and_add(h_mg, h_r, header, '')
+				header.header_type.name = header.name + '_t'
+				h_mg.p4_headers[header.header_type.name] = header.header_type
+	#check if renaming is necessary
+	if parse_stateR.return_statement[0] == 'select':
+		if parse_stateR.name in h_mg.p4_parse_states:
+			oldName = parse_stateR.name
+			if first_merge:
+				parse_stateR.name = parse_stateR.name + 'NEW'
+			else:
+				parse_stateR.name = parse_stateR.name + 'NEW' + virtual
+			h_mg.p4_parse_states[parse_stateR.name] = parse_stateR
+			add_select_fields(h_r, parse_stateR, first_merge, virtual)
+			parse_stateR.return_statement[1].insert(0, 'upvn.pvid')
+			parse_stateR.branch_on.insert(0, h_meta.p4_header_instances['upvn'].fields[0])
+			#add translation between old and new name
+			h_r.merged_map[oldName] = parse_stateR.name
+		else:
+			add_select_fields(h_r, parse_stateR, first_merge, virtual)
+			parse_stateR.return_statement[1].insert(0, 'upvn.pvid')
+			parse_stateR.branch_on.insert(0, h_meta.p4_header_instances['upvn'].fields[0])
+			h_mg.p4_parse_states[parse_stateR.name] = parse_stateR
+			#add translation between old and new name (same in this case)
+			h_r.merged_map[parse_stateR.name] = parse_stateR.name
+	#if immediate (e.g. tcpNEW)	
+	else:
+		if parse_stateR.name in h_mg.p4_parse_states:
+			oldName = parse_stateR.name
+			if first_merge:
+				parse_stateR.name = parse_stateR.name + 'NEW'
+			else:
+				parse_stateR.name = parse_stateR.name + 'NEW' + virtual
+			h_mg.p4_parse_states[parse_stateR.name] = parse_stateR
+			add_select_fields(h_r, parse_stateR, first_merge, virtual)
+			parse_stateR.branch_on.insert(0, h_meta.p4_header_instances['upvn'].fields[0])
+			#add translation between old and new name
+			h_r.merged_map[oldName] = parse_stateR.name
+		else:
+			h_mg.p4_parse_states[parse_stateR.name] = parse_stateR
+			add_select_fields(h_r, parse_stateR, first_merge, virtual)
+			parse_stateR.branch_on.insert(0, h_meta.p4_header_instances['upvn'].fields[0])
+			#add translation between old and new name (same in this case)
+			h_r.merged_map[parse_stateR.name] = parse_stateR.name
+
+
+def add_select_fields(h_r, parser_stateR, first_merge, virtual):
+	default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+	if parser_stateR.return_statement[0] == 'select':
+		width = 0
+		# calculate the total width of select fields
+		for field in parser_stateR.branch_on:
+			if not isinstance(field, tuple):				
+				width = field.width + width
+			else:
+				width = (field[1] - field[0]) + width
+		newDict = OrderedDict()
+		for transition_2 in parser_stateR.branch_to.items():		
+			if isinstance(transition_2[0], int):	
+				
+				bin_key = format(transition_2[0], 'b')
+				bin_key = bin_key.zfill(width)
+				# Add id (for now, fake value)
+				if first_merge:
+					bin_key = format(int('f', 16), 'b') + bin_key 
+				else:
+					bin_key = format(int(virtual, 16), 'b') + bin_key 
+				mask = '1'* len(bin_key)
+				newDict[(int(bin_key, 2), int(mask,2))] = transition_2[1]
+			# do need to modify first value to hold the flag
+			elif isinstance(transition_2[0], tuple):
+				bin_key = format(transition_2[0][0], 'b')
+				bin_key = bin_key.zfill(width)
+				# Add id (for now, fake value)
+				if first_merge:
+					bin_key = format(int('f', 16), 'b') + bin_key 
+				else:
+					bin_key = format(int(virtual, 16), 'b') + bin_key  
+				#take care of mask
+				mask = format(transition_2[0][1], 'b')
+				mask = mask.zfill(width)
+				mask = '1111' + mask
+				newDict[(int(bin_key, 2), int(mask,2))] = transition_2[1]
+
+			elif transition_2[0] == default:
+				fill = ''
+				fill = fill.zfill(width)
+				
+				if first_merge:
+					bin_key = format(int('f', 16), 'b') + fill
+					mask = '1111' + fill
+				else:
+					bin_key = format(int(virtual, 16), 'b') + fill
+					mask = '1111' + fill
+				newDict[(int(bin_key,2), int(mask, 2))] = transition_2[1]
+		parser_stateR.branch_to = newDict
+        #if its immediate, change default transition to virtual id transition
+	elif parser_stateR.return_statement[0] == 'immediate':
+		default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+		if first_merge:
+			parser_stateR.branch_to[(0xf, 0xf)] = parser_stateR.branch_to.pop(default)
+		else:
+			parser_stateR.branch_to[(int(virtual,16), 0xf)] = parser_stateR.branch_to.pop(default)
+
+
+def add_select_fields_2(h_r, parser_stateR):
+	default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+	if parser_stateR.return_statement[0] == 'select':
+		width = 0
+		# calculate the total width of select fields
+		for field in parser_stateR.branch_on:
+			if not isinstance(field, tuple):			
+				if field.name == 'pvid':
+					continue
+				width = field.width + width
+			#if select is of type current(0,n)			
+			else:
+				width = (field[1] - field[0]) + width
+
+		newDict = OrderedDict()
+		for transition_2 in parser_stateR.branch_to.items():
+			if isinstance(transition_2[0], int):
+				bin_key = format(transition_2[0], 'b')
+				bin_key = bin_key.zfill(width)
+				# Add id (for now, fake value)
+				bin_key = '0001' + bin_key 
+				# Create mask (f's for each position, meaning care about all)
+				mask = '1' * len(bin_key)
+				newDict[(int(bin_key, 2), int(mask, 2))] = transition_2[1]
+			# modify first value to hold the flag
+			if isinstance(transition_2[0], tuple):
+				bin_key = format(transition_2[0][0], 'b')
+				bin_key = bin_key.zfill(width)
+				# Add id (for now, fake value)
+				bin_key = '0001' + bin_key  
+				mask = format(transition_2[0][1], 'b')
+				mask = mask.zfill(width)
+				mask = '1111' + mask
+				newDict[(int(bin_key, 2), int(mask, 2))] = transition_2[1]
+			elif transition_2[0] == default:
+				bin_key = ''
+				bin_key = bin_key.zfill(width)
+				bin_key = '0001' + bin_key
+				mask = ''
+				mask = mask.zfill(width)
+				mask = '1111' + mask
+				newDict[(int(bin_key, 2), int(mask, 2))] = transition_2[1]
+		parser_stateR.branch_to = newDict
+	#add transition case before sharing
+	elif parser_stateR.return_statement[0] == 'immediate':
+		parser_stateR.branch_on.insert(0, h_r.p4_header_instances['upvn'].fields[0])
+		default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+		parser_stateR.branch_to[(0x1, 0xf)] = parser_stateR.branch_to.pop(default)
+			
+def calculate_diff_fields(parser_stateR, state_MG, h_r):
+	mg_diff = []
+	common_fields = OrderedDict()
+	#for each field in the merged select
+	for field in state_MG.branch_on:
+		#ignore shadow flag
+		if field.name == 'pvid':
+			continue
+		header_MG = field.instance
+		header_R = get_header_if_eq(h_r, header_MG) 
+		#if this header doesnt exist in R, it wont be in the select, so we append to mg_diff
+		if header_R == '':
+			mg_diff.append(field)
+		else:
+			#see if in stateR this field is used
+			pos = field.instance.fields.index(field)
+			field_R = header_R.fields[pos]
+			#if this field is NOT used in the stateR, append to list
+			if field_R not in parser_stateR.branch_on:
+				mg_diff.append(field)
+			else:
+				common_fields[field] = field_R
+	r_diff = []
+	for field in parser_stateR.branch_on:
+		if field not in common_fields.values():
+			r_diff.append(field)
+	return mg_diff, r_diff, common_fields
+	
+		
+#get the header in h_r that is equivalent to header_MG
+#(note: does not work to get equivalent header in h_mg,
+#since the equivalence list only exist in h_r)
+def get_header_if_eq(h_r, header_MG):
+	if header_MG.name in h_r.lStrongEq:
+		header_nameR = h_r.lStrongEq[header_MG.name]
+		header_R = h_r.p4_header_instances[header_nameR]
+		return header_R
+	
+	for header_nameR, temp in h_r.lSimpleEq.items():
+		if temp == header_MG.name:
+			header_R = h_r.p4_header_instances[header_nameR]
+			return header_R	
+
+	#special case for weak equivalent sharing
+	if header_MG.name in h_r.lWeakEq.values():
+		for header_nameR, temp in h_r.lWeakEq.items():
+			if temp == header_MG.name:
+				header_R = h_r.p4_header_instances[header_nameR]
+				return header_R
+	
+	else:
+		return ''	
+
+def add_select_fields_shared(h_r, h_mg, parser_stateR, state_MG, h_meta, first_merge, virtual):
+	mg_diff, r_diff, common_fields = calculate_diff_fields(parser_stateR, state_MG, h_r)
+	#add ignore values for new fields in mg's transitions
+	add_ignore_fields(state_MG, r_diff)
+	add_fields_to_r(state_MG, parser_stateR, mg_diff, r_diff, common_fields, h_mg, h_r)
+	if virtual == '3':
+		print
+	if parser_stateR.return_statement[0] == 'select':
+		width = 0
+		for field in state_MG.branch_on:
+			if field.name == 'pvid':
+				continue
+			if not isinstance(field, tuple):
+				width = field.width + width
+			else:
+				width = (field[1] - field[0]) + width
+		newDict = OrderedDict()
+		for transition_2 in parser_stateR.branch_to.items():
+			#redundant code, transitions are all in tuple and default format 
+			if isinstance(transition_2[0], int):
+				bin_key = format(transition_2[0], 'b')
+				bin_key = bin_key.zfill(width)
+				# Add id 
+				if first_merge:
+					bin_key = format(int('f', 16), 'b') + bin_key 
+				else:
+					bin_key = format(int(virtual, 16), 'b') + bin_key 
+				newDict[int(bin_key, 2)] = transition_2[1]
+
+			if isinstance(transition_2[0], tuple):
+				bin_key = format(transition_2[0][0], 'b')
+				bin_key = bin_key.zfill(width)
+				# Add id 
+				if first_merge:
+					bin_key = format(int('f', 16), 'b') + bin_key 
+				else:
+					bin_key = format(int(virtual, 16), 'b') + bin_key 
+				
+				#mask is dealt with in add_fields_to_r
+				newDict[(int(bin_key, 2), transition_2[0][1])] = transition_2[1]
+			else:
+				bin_key = ''
+				bin_key = bin_key.zfill(width)
+				#add the virtual id
+				if first_merge:
+					bin_key = format(int('f', 16), 'b') + bin_key
+				else:
+					bin_key = format(int(virtual, 16), 'b') + bin_key
+				#create mask 
+				mask = ''
+				mask = mask.zfill(width)
+				mask = '1111' + mask				
+				newDict[(int(bin_key, 2), int(mask, 2))] = transition_2[1]
+		parser_stateR.branch_to = newDict
+	#if its immediate, add virtual id and transition
+	else:
+		parser_stateR.branch_on.insert(0, h_meta.p4_header_instances['upvn'].fields[0])
+		default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+		#if the state in mg is selecting on upvn.pvid only
+		if len(state_MG.branch_on) == 1:
+			if first_merge:
+				parser_stateR.branch_to[(0xf, 0xf)] = parser_stateR.branch_to.pop(default)
+			else:
+				parser_stateR.branch_to[(int(virtual, 16), 0xf)] = parser_stateR.branch_to.pop(default)
+		else:
+			width = 0
+			for field in state_MG.branch_on:
+				if not isinstance(field, tuple):			
+					if field.name == 'pvid':
+						continue
+					width = field.width + width
+				#if select is of type current(0,n)			
+				else:
+					width = (field[1] - field[0]) + width
+			
+
+			fill = ''
+			fill = fill.zfill(width)
+			if first_merge:
+				value = format(int('f', 16), 'b') + fill
+				mask = '1111' + fill
+				parser_stateR.branch_to[(int(value, 2), int(mask, 2))] = parser_stateR.branch_to.pop(default)
+			else:
+				value = format(int(virtual, 16), 'b') + fill
+				mask = '1111' + fill
+				parser_stateR.branch_to[(int(value,2), int(mask,2))] = parser_stateR.branch_to.pop(default)
+
+
+def add_fields_to_r(state_MG, parser_stateR, mg_diff, r_diff, common_fields, h_mg, h_r):
+	r_width = 0
+	for field in parser_stateR.branch_on:
+		if not isinstance(field, tuple):
+			r_width = r_width + field.width
+		else:
+			r_width = r_width + field[1] - field[0]
+	
+	# for each transition case in r 
+	new_branch_to = OrderedDict()
+	for value, next_state in parser_stateR.branch_to.items():
+		if isinstance(value, int):
+			new_value = ''
+			mask = ''
+			field_value = OrderedDict()
+			bin_key = format(value, 'b')
+			bin_key = bin_key.zfill(r_width)	
+			
+			#create map field -> respective transition values
+			i = 0
+			for field in parser_stateR.branch_on:
+				if not isinstance(field, tuple):
+					f_width = field.width
+				else:
+					f_width = field[1] - field[0]
+
+		
+				field_value[field] = bin_key[i:i + f_width]
+				i = i + f_width
+				
+			#add each field value to new transition value, from mg
+			for field_mg in state_MG.branch_on:
+				if field_mg.name == 'pvid':
+					continue
+				#if this field doesnt exist in R, add ignore values
+				if field_mg in mg_diff:
+					fill = ''
+					width = field_mg.width
+					fill = fill.zfill(width)
+					new_value = new_value + fill
+					mask = mask + fill
+				#if this field exists in R, but not in MG, add portion of value and correct mask
+				elif field_mg in r_diff:
+					new_value = new_value + field_value[field_mg]
+					width = field_mg.width
+					mask = mask + '1' * width
+				#if this field exists in both
+				else:
+					field_in_r = common_fields[field_mg]
+					new_value = new_value + field_value[field_in_r]
+					width = field_in_r.width
+					mask = mask + '1' * width
+			#add f for the virtual id on the mask, for value its done in next step
+			new_branch_to[(int(new_value,2), int('1111' + mask, 2))] = next_state
+
+		elif isinstance(value, tuple):
+			new_value = ''
+			mask = ''
+			field_value = OrderedDict()
+			bin_key = format(value[0], 'b')
+			bin_key = bin_key.zfill(r_width)
+			field_mask = OrderedDict
+			bin_mask = format(value[1], 'b')	
+			bin_mask = bin_mask.zfill(r_width)
+			
+			#create map field -> respective transition values
+			i = 0
+			for field in parser_stateR.branch_on:
+				if not isinstance(field, tuple):
+					f_width = field.width
+				else:
+					f_width = field[1] - field[0]
+
+		
+				field_value[field] = bin_key[i:i + f_width]
+				field_mask[field] = bin_mask[i:i + f_width]
+				i = i + f_width
+
+			#add each field value to new transition value, from mg
+			for field_mg in state_MG.branch_on:
+				if field_mg.name == 'pvid':
+					continue
+				#if this field doesnt exist in R, add ignore values
+				if field_mg in mg_diff:
+					width = field_mg.width
+					fill = fill.zfill(width)
+					new_value = new_value + fill
+					mask = mask + fill
+				#if this field exists in R, but not in MG, add portion of value and correct mask
+				if field_mg in r_diff:
+					new_value = new_value + field_value[field_mg]
+					mask = mask + field_mask[field_mg]
+				#if this field exists in both
+				else:
+					field_in_r = common_fields[field_mg]
+					new_value = new_value + field_value[field_in_r]
+					mask = mask + field_mask[field_in_r]
+			#add f for the virtual id on the mask, for value its done in next step
+			new_branch_to[(int(new_value,2), int('1111' + mask, 2))] = next_state
+
+
+		else:
+			new_branch_to[value] = next_state
+	parser_stateR.branch_to = new_branch_to
+
+	# After the transition cases have been corrected, remove every field from R from the MG state.
+	# This must be done because in the merged json, those fields do not exist
+	new_branch_on = []
+	for field in state_MG.branch_on:
+		if field not in parser_stateR.branch_on:
+			new_branch_on.append(field)
+		else:
+			fieldMG = find_fieldMG(field, h_r, h_mg)
+			new_branch_on.append(fieldMG)
+	state_MG.branch_on = new_branch_on
+	
+def add_ignore_fields(stateMG, r_diff):
+	width = 0	
+	for field in r_diff:
+		if not isinstance(field, tuple):
+			width = width + field.width
+		else:
+			width = width + field[1] - field[0]
+		
+		stateMG.branch_on.append(field)
+	if width != 0:
+		
+		newDict = OrderedDict()
+		for transition_2 in stateMG.branch_to.items():
+			
+			if isinstance(transition_2[0], tuple):
+				bin_key = format(transition_2[0][0], 'b')	
+				mask = format(transition_2[0][1], 'b')	
+				fill = ''
+				fill = fill.zfill(width)
+				bin_key = bin_key + fill
+				mask = mask + fill
+				newDict[(int(bin_key, 2), int(mask, 2))] = transition_2[1]
+		stateMG.branch_to = newDict
+
+#this function finds the equivalent field in the mg header. This is necessary, as in
+#the merged json, the field from R will no longer exist, and so cannot be selected on
+def find_fieldMG(fieldR, h_r, h_mg):
+	headerR = fieldR.instance
+	start = fieldR.offset
+	if headerR.name in h_r.lWeakEq:
+		headerMG = h_mg.p4_header_instances[h_r.lWeakEq[headerR.name]]
+		for field in headerMG.fields:
+			if field.offset == start:
+				return field
+	headerMG = ''	
+	if headerR.name in h_r.lStrongEq:
+		headerMG = h_mg.p4_header_instances[h_r.lStrongEq[headerR.name]]
+	else:
+		headerMG = h_mg.p4_header_instances[h_r.lSimpleEq[headerR.name]]
+
+	for field in headerMG.fields:
+			if field.offset == start:
+				return field
+
+def check_same_metadata(h_r, h_mg, parser_stateR):
+	#check if metadata modified in parser_stateR is present in h_mg
+	for call in parser_stateR.call_sequence:
+		header_nameMG = ''
+		if call[0] == p4_hlir.hlir.p4_parser.parse_call.set:
+			field_R = call[1]
+			header_R = field_R.instance
+			if header_R.name in h_r.lStrongEq:
+				header_nameMG = h_r.lStrongEq[header_R.name]
+
+			if header_R.name in h_r.lSimpleEq:
+				for key, value in h_r.lSimpleEq.items():
+					if value == header_R.name:
+						header_nameMG = key
+						break
+			if header_nameMG == '':
+				continue
+			else:
+				header_MG = h_mg.p4_header_instances[header_nameMG]
+				index = header_R.fields.index(field_R)
+				field_MG = header_MG.fields[index]
+				if header_MG.name in h_mg.my_lists:
+					if field_MG.name in h_mg.my_lists[header_MG.name]:
+						return True
+	return False	
+	
+def share_state(h_r, h_mg, parser_stateR, header_MG, h_meta, first_merge, virtual):
+	#find extracting state
+	state_MG = ''
+	for _, stateTemp in h_mg.p4_parse_states.items():
+		if len(stateTemp.call_sequence) > 0:
+			if stateTemp.call_sequence[0][1].name == header_MG :
+				state_MG = stateTemp
+				break
+	if state_MG != '':
+		#check if uses same metadata
+		if check_same_metadata(h_r,h_mg, parser_stateR):
+			rename_and_add_state(h_r, h_mg, parser_stateR, h_meta, first_merge, virtual)
+			return
+		#check if multiple extracted headers are all equivalent
+		if not same_extracted_headers(h_r, parser_stateR, state_MG):
+			rename_and_add_state(h_r, h_mg, parser_stateR, h_meta, first_merge, virtual)
+			return 
+		if not correct_topo_level(parser_stateR, state_MG, h_r, h_mg):
+			rename_and_add_state(h_r, h_mg, parser_stateR, h_meta, first_merge, virtual)
+			return
+		add_select_fields_shared(h_r, h_mg, parser_stateR, state_MG, h_meta, first_merge, virtual)
+		h_r.topo_level = parser_stateR.topo_level
+		h_mg.topo_level = state_MG.topo_level
+		#add transitions		
+		for key, state in parser_stateR.branch_to.items():
+			h_mg.p4_parse_states[state_MG.name].branch_to[key] = state
+			if not isinstance(state, p4_hlir.hlir.p4_table):
+				state.prev.add(state_MG)
+				
+					
+		
+		#Change parse state object in previous transitions
+		for state in parser_stateR.prev:
+			for key, tempState in state.branch_to.items():
+				if tempState == parser_stateR:
+					state.branch_to[key] = state_MG
+
+		#add translation between old and new state names
+		h_r.merged_map[parser_stateR.name] = state_MG.name
+
+
+def correct_topo_level(parser_stateR, state_MG, h_r, h_mg):
+	if parser_stateR.name == 'parse_udp' and state_MG.name == 'parse_ipv6':
+		print
+	if parser_stateR.topo_level >= h_r.topo_level and state_MG.topo_level >= h_mg.topo_level:
+		return True
+	else:
+		return False
+
+def same_extracted_headers(h_r, state_R, state_MG):
+	extract = p4_hlir.hlir.p4_parser.parse_call.extract
+	extract_R = []
+	for entry in state_R.call_sequence:
+		if entry[0] == extract:
+			extract_R.append(entry[1])
+	extract_MG = []
+	for entry in state_MG.call_sequence:
+		if entry[0] == extract:
+			extract_MG.append(entry[1])
+
+	#if each header is strong, simple or weakly equivalent, share state
+	if len(extract_R) != len(extract_MG):
+		return False
+	same = True
+	for i in range(len(extract_R)):
+		name_R = extract_R[i].name
+		name_MG = extract_MG[i].name
+		if name_R in h_r.lWeakEq:
+			if h_r.lWeakEq[name_R] == name_MG:
+				continue
+			else:
+				same = False
+				break
+		if name_R in h_r.lStrongEq:
+			if h_r.lStrongEq[name_R] == name_MG:
+				continue
+			else:
+				same = False
+				break
+		if name_R in h_r.lSimpleEq:
+			if h_r.lSimpleEq[name_R] == name_MG:
+				continue
+			else:
+				same = False
+				break
+	return same
+		
+
+def clear_topo_order(h_mg):
+	h_mg.topo_level = 0
+	for name, state in h_mg.p4_parse_states.items():
+		state.topo_level = 0
+		state.pos_bitstream = []
+
+
+def fill_topo_order(h_mg, h_r):
+	#attributing topological levels to the merged program
+	recursive_fill(h_mg.p4_parse_states['parse_upvn'], 0)
+
+	#attributing topological levels to the added program
+	recursive_fill(h_r.p4_parse_states['start'], 0)
+
+
+#function used to give each state a topological level
+#curr_state -> state being updated
+#level -> candidate level 
+def recursive_fill(curr_state, level):
+	states = []
+	#get all states reachable by this state (no duplicates)
+	for key , state in curr_state.branch_to.items():
+		if state not in states:
+			states.append(state)
+	
+	#if the level received from the last state is greater
+	#than the one the state currently has, we update 
+	if level > curr_state.topo_level:
+		curr_state.topo_level = level
+		
+	#for every reachable state, call the function with 
+	#the current state's topological level + 1 
+	for state in states:
+		if not isinstance(state, p4_hlir.hlir.p4_table):
+			recursive_fill(state, curr_state.topo_level + 1)
+
+def delete_transitions_and_id(state):
+	id_remove = True
+	if state.name == 'start':
+		return
+	#number of programs sharing this state	
+	prog_count = get_shared_program_count(state)
+	width = 0
+	for field in state.branch_on:
+		if isinstance(field,tuple):
+			width = width + field[1] - field[0]
+		else:
+			width = width + field.width
+	#create copy of original branch_to dictionary
+	tempDict = OrderedDict()
+	for keyTemp, valueTemp in state.branch_to.items():
+		tempDict[keyTemp] = valueTemp
+
+	#list of redundant cases to be removed
+	temp_remove = []
+	#for every transition of the state
+	for key, next_state in state.branch_to.items():
+		if key not in tempDict:
+			continue
+		keyBin = format(key[0], 'b')
+		keyBin = keyBin.zfill(width)
+		realValue = keyBin[4:]
+
+		mask = format(key[1], 'b')
+		mask = mask.zfill(width)
+		realMask = mask[4:]
+		for key2, next_state2 in state.branch_to.items():
+			if key == key2:
+				continue
+
+			keyBin2 = format(key2[0], 'b')
+			keyBin2 = keyBin2.zfill(width)
+			realValue2 = keyBin2[4:]
+
+			mask2 = format(key2[1], 'b')
+			mask2 = mask2.zfill(width)
+			realMask2 = mask2[4:]
+			
+			#if the two transitions have the same transition condition and following state
+			#then they are temporarily added to the remove list
+			if realValue == realValue2 and realMask == realMask2 and next_state == next_state2:
+				temp_remove.append(key2)
+	
+		#if every program sharing this state has the same transition as the current (key, next_state) pair
+		#remove all redundant transition
+		if len(temp_remove) == prog_count - 1:
+			for case in temp_remove:
+				tempDict.pop(case)
+			#change the remaining transition, from id+field mask f+f
+			# to 0+field mask 0+f
+			if realValue == '':
+				realValue = '0'
+			if realMask == '':
+				realMask = '0'
+			
+			if (int(realValue,2),int(realMask,2)) == (0,0):
+				default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+				tempDict[default] = tempDict.pop(key)
+			else:
+				tempDict[(int(realValue,2),int(realMask,2))] = tempDict.pop(key)
+		else:
+			id_remove = False
+		temp_remove = []
+	
+	
+	#after removing redundant transitions, check if pvid can be removed
+	if id_remove:
+		del state.branch_on[0]
+	state.branch_to = tempDict
+		
+		
+	
+def get_shared_program_count(state):
+	temp_list = []	
+	for key, nextState in state.branch_to.items():
+		#original key (i.e., pvid + field in binary format)
+		originalBin = format(key[0], 'b')
+		width = 0
+		for field in state.branch_on:
+			if isinstance(field,tuple):
+				width = width + field[1] - field[0]
+			else:
+				width = width + field.width
+		#original key with leftmost bits added if needed
+		originalBin = originalBin.zfill(width)
+		#program id, present in the first 4 bits
+		program_id = originalBin[:4]
+		if program_id not in temp_list:
+			temp_list.append(program_id)
+	return len(temp_list)
+
+def delete_virtual_parser(h_mg):
+	#if after deleting duplicate transitions there is only one transition 
+	#from shadow state, then all programs transition to the same state, and 
+	#so there is no need for this parse state, and next state can extract 
+	#the virtual header 
+	if len(h_mg.p4_parse_states['parse_upvn'].branch_to.items()) == 1:
+		extract = p4_hlir.hlir.p4_parser.parse_call.extract
+		default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+		state = h_mg.p4_parse_states['parse_upvn'].branch_to.items()[0][1]
+		start = h_mg.p4_parse_states['start']
+		start.branch_to[default] = state
+		state.prev.pop()
+		state.prev.add(start)
+		h_mg.p4_parse_states.pop('parse_upvn')	
+		virtual = h_mg.p4_header_instances['upvn']
+		state.call_sequence.insert(0, (extract, virtual)) 
+
+
+
+def add_set_metadata(h_mg):
+	#change to custom metadata
+	field = h_mg.p4_header_instances['upvn_metadata'].fields[0]
+	state_id = 0
+	for name, state in h_mg.p4_parse_states.items():
+		if state.name == 'start' or state.name == 'parse_upvn' :
+			continue
+		value = int(math.pow(2, state_id))
+		expression = p4_hlir.hlir.p4_expressions.p4_expression(field, '+', value)
+		set_meta = p4_hlir.hlir.p4_parser.parse_call.set
+		statement = (set_meta, field, expression)
+		state.call_sequence.append(statement)
+		state.id = state_id
+		state_id = state_id + 1
+		
 
 def SP4_AB_merge_p4_objects(p4_v1_1, h_r, h_s, h_meta):
     ### The following is the merged HLIR
@@ -1132,6 +2692,7 @@ def SP4_AB_merge_p4_objects(p4_v1_1, h_r, h_s, h_meta):
 
     h_mg.p4_ingress_ptr = h_s.p4_ingress_ptr
     h_mg.p4_egress_ptr = h_s.p4_egress_ptr
+    h_mg.my_lists = h_s.my_lists
 
 
   ## 3. Merging each object of real program and h_meta
@@ -1265,7 +2826,7 @@ def DF_set_nodes_with_next_none(entry, visited, next_set_state):
             pass
     return
 
-def DF_merge_p4_tables(h_mg, h_r, h_s, h_meta):
+def DF_merge_p4_tables_Original(h_mg, h_r, h_s, h_meta):
     print 'LOG|MERGE|8 p4 tables:'
     print 'LOG|MERGE|  Shadow  tables:', h_s.p4_tables.keys()
     print 'LOG|MERGE|  Product tables:', h_r.p4_tables.keys()
@@ -1302,7 +2863,7 @@ def DF_merge_p4_tables(h_mg, h_r, h_s, h_meta):
 
     # set shadow traffic control branch
     for e in h_mg.p4_tables["shadow_traffic_control"].next_:
-        if e.name == 'SP4_remove_shadow_tag' or e.name == 'goto_production_pipe':
+        if e.name == 'SP4_remove_upvn' or e.name == 'goto_production_pipe':
             h_mg.p4_tables["shadow_traffic_control"].next_[e] = h_mg.p4_nodes[ingress_ptr_r.name]
         print 'LOG|MERGE|add STC nexts:', h_mg.p4_tables["shadow_traffic_control"].next_[e]
         pass
@@ -1315,8 +2876,10 @@ def DF_merge_p4_tables(h_mg, h_r, h_s, h_meta):
     
     return
 
+def DF_merge_p4_tables(h_mg, h_r, h_s, h_meta):
+	h_mg.p4_tables.update(h_meta.p4_tables)
 
-def SP4_DF_merge_p4_objects(p4_v1_1, h_r, h_s, h_meta):
+def SP4_DF_merge_p4_objects(p4_v1_1, h_r, h_s, h_meta, virtual):
     ### The following is the merged HLIR
 
   ## 1. init merged hlir
@@ -1327,31 +2890,37 @@ def SP4_DF_merge_p4_objects(p4_v1_1, h_r, h_s, h_meta):
         from p4_hlir.main import HLIR
         primitives_res = 'primitives.json'
     h_mg = HLIR()
+  
 
+  #if it is not the first merging process, h_mg = h_s
+    if 'upvn' in h_s.p4_header_instances:
+	h_mg = h_s
+    else:
   ## 2. add objects of shadow program
-    h_mg.p4_actions.update(h_s.p4_actions)       
-    h_mg.p4_control_flows.update(h_s.p4_control_flows)
-    h_mg.p4_headers.update(h_s.p4_headers )
-    h_mg.p4_header_instances.update(h_s.p4_header_instances )
-    h_mg.p4_fields.update(h_s.p4_fields )
-    h_mg.p4_field_lists.update(h_s.p4_field_lists )
-    h_mg.p4_field_list_calculations.update(h_s.p4_field_list_calculations )
-    h_mg.p4_parser_exceptions.update(h_s.p4_parser_exceptions )
-    h_mg.p4_parse_value_sets.update(h_s.p4_parse_value_sets)
-    h_mg.p4_parse_states.update(h_s.p4_parse_states )
-    h_mg.p4_counters.update(h_s.p4_counters)
-    h_mg.p4_meters.update(h_s.p4_meters)
-    h_mg.p4_registers.update(h_s.p4_registers )
-    h_mg.p4_nodes.update(h_s.p4_nodes )
-    h_mg.p4_tables.update(h_s.p4_tables )
-    h_mg.p4_action_profiles.update(h_s.p4_action_profiles  )
-    h_mg.p4_action_selectors.update(h_s.p4_action_selectors )
-    h_mg.p4_conditional_nodes.update(h_s.p4_conditional_nodes)
+	    h_mg.p4_actions.update(h_s.p4_actions)       
+	    h_mg.p4_control_flows.update(h_s.p4_control_flows)
+	    h_mg.p4_headers.update(h_s.p4_headers )
+	    h_mg.p4_header_instances.update(h_s.p4_header_instances )
+	    h_mg.p4_fields.update(h_s.p4_fields )
+	    h_mg.p4_field_lists.update(h_s.p4_field_lists )
+	    h_mg.p4_field_list_calculations.update(h_s.p4_field_list_calculations )
+	    h_mg.p4_parser_exceptions.update(h_s.p4_parser_exceptions )
+	    h_mg.p4_parse_value_sets.update(h_s.p4_parse_value_sets)
+	    h_mg.p4_parse_states.update(h_s.p4_parse_states )
+	    h_mg.p4_counters.update(h_s.p4_counters)
+	    h_mg.p4_meters.update(h_s.p4_meters)
+	    h_mg.p4_registers.update(h_s.p4_registers )
+	    h_mg.p4_nodes.update(h_s.p4_nodes )
+	    h_mg.p4_tables.update(h_s.p4_tables )
+	    h_mg.p4_action_profiles.update(h_s.p4_action_profiles  )
+	    h_mg.p4_action_selectors.update(h_s.p4_action_selectors )
+	    h_mg.p4_conditional_nodes.update(h_s.p4_conditional_nodes)
 
-    h_mg.calculated_fields = h_s.calculated_fields
+	    h_mg.calculated_fields = h_s.calculated_fields
 
-    h_mg.p4_ingress_ptr = h_meta.p4_ingress_ptr
-    h_mg.p4_egress_ptr = h_meta.p4_egress_ptr
+	    h_mg.p4_ingress_ptr = h_meta.p4_ingress_ptr
+	    h_mg.p4_egress_ptr = h_meta.p4_egress_ptr
+	    h_mg.my_lists = h_s.my_lists
 
 
   ## 3. Merging each object of real program and h_meta
@@ -1463,7 +3032,7 @@ def SP4_DF_merge_p4_objects(p4_v1_1, h_r, h_s, h_meta):
 
     # 3.14 merge parse states
     print 'LOG|MERGE|14 p4_parse_states:'
-    merge_parser_states(h_mg, h_r, h_meta)
+    merge_parser_states(h_mg, h_r, h_meta, virtual)
 
     # 3.15 merge parser exceptions
     # ZP: null

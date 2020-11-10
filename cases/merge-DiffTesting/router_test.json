@@ -370,19 +370,8 @@
             ]
         },
         {
-            "name": "_drop_SHADOW",
-            "id": 2,
-            "runtime_data": [],
-            "primitives": [
-                {
-                    "op": "drop",
-                    "parameters": []
-                }
-            ]
-        },
-        {
             "name": "set_dmac_SHADOW",
-            "id": 3,
+            "id": 2,
             "runtime_data": [
                 {
                     "name": "dmac",
@@ -405,6 +394,17 @@
                             "value": 0
                         }
                     ]
+                }
+            ]
+        },
+        {
+            "name": "_drop_SHADOW",
+            "id": 3,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "drop",
+                    "parameters": []
                 }
             ]
         }

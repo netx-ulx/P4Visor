@@ -1,0 +1,140 @@
+++++++ NEW ALL PROGRAMS - 40 ++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/simple_router_with_arp.p4  --shadow_source tests/testAll/source_routing.p4 --json tests/testAll/simple_router_with_arp.json --json_s tests/testAll/source_routing.json --json_mg tests/testAll/merged.json --l tests/testAll/timestamp.p4 tests/testAll/mtag-edge.p4 tests/testAll/portKnockFirewall.p4 tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/flowlet.p4  --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+++++++ EXTRA TESTING - 22 ++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testExtra/nethcf.p4  --shadow_source tests/testExtra/vpc.p4 --json tests/testExtra/nethcf.json --json_s tests/testExtra/vpc.json --json_mg tests/testExtra/merged.json --l  tests/testExtra/portCounter.p4 tests/testExtra/nat.p4 tests/testExtra/ecmp.p4  --gen-fig --gen_dir tests/testExtra --Diff-testing
+
+
+++++++++++ test tcp + udp + timestamp + source_routing - 49 - updated 28 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 tests/testAll/source_routing.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+++++++++++ test tcp - updated 6 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4  --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+++++++++++ test udp - updated 13 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/mc_nat.p4  --shadow_source tests/testAll/ecmp.p4 --json tests/testAll/mc_nat.json --json_s tests/testAll/ecmp.json --json_mg tests/testAll/merged.json --l tests/testAll/simple_router.p4 tests/testAll/timestamp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+++++++++++ test C - updated 21 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/mtag-edge.p4  --shadow_source tests/testAll/source_routing.p4 --json tests/testAll/mtag-edge.json --json_s tests/testAll/source_routing.json --json_mg tests/testAll/merged.json --l tests/testAll/simple_router_with_arp.p4  --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+
+++++++++++ test tcp + udp + source_routing + timestamp - 46 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/source_routing.p4 tests/testAll/timestamp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+
+++++++++++ source_routing + tcp + udp - 50 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/flowlet.p4  --shadow_source tests/testAll/source_routing.p4 --json tests/testAll/flowlet.json --json_s tests/testAll/source_routing.json --json_mg tests/testAll/merged.json --l tests/testAll/flowlet.p4 tests/testAll/portKnockFirewall.p4 tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+++++++++++ tcp + udp + simple_w/_arp - 24 - updated 20 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 tests/testAll/simple_router_with_arp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+
+++++++++++ tcp + udp + mtag - 30 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 tests/testAll/mtag-edge.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+
+++++++++++ tcp + mtag - 14 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/mtag-edge.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+
+++++++++++ tcp + mtag + udp - 22 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/mtag-edge.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+
+++++++++++ tcp + udp + mtag + simple_w/_arp + source_routing - 75 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 tests/testAll/mtag-edge.p4 tests/testAll/simple_router_with_arp.p4 tests/testAll/source_routing.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+++++++++++ tcp + udp + mtag + source_routing + simple_w/_arp  - 77 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 tests/testAll/mtag-edge.p4 tests/testAll/source_routing.p4 tests/testAll/simple_router_with_arp.p4  --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+++++++++++ tcp + udp* + mtag + simple_w/_arp + source_routing + timestamp- 76 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/mtag-edge.p4 tests/testAll/simple_router_with_arp.p4 tests/testAll/source_routing.p4 tests/testAll/timestamp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+
+++++++++++ tcp + udp + mtag + simple_w/_arp - 39 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 tests/testAll/mtag-edge.p4 tests/testAll/simple_router_with_arp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+
+++++++++++ tcp + udp + simple_w/_arp + mtag - 39 ++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 tests/testAll/simple_router_with_arp.p4 tests/testAll/mtag-edge.p4  --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+++++++++++ tcp + mtag + simple_w/_arp + source_routing + udp - 67 ++++++++++ 
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/mtag-edge.p4 tests/testAll/simple_router_with_arp.p4 tests/testAll/source_routing.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+
+++++++++++ source_routing + timestamp - 22 ++++++++++ 
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/timestamp.p4  --shadow_source tests/testAll/source_routing.p4 --json tests/testAll/timestamp.json --json_s tests/testAll/source_routing.json --json_mg tests/testAll/merged.json  --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+++++++++++ timestamp + source_routing  - 22 ++++++++++ 
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/source_routing.p4  --shadow_source tests/testAll/timestamp.p4 --json tests/testAll/source_routing.json --json_s tests/testAll/timestamp.json --json_mg tests/testAll/merged.json  --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+++++++++++ source_routing + mtag + simple_w/_arp + tcp + udp - 64 ++++++++++ 
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/mtag-edge.p4  --shadow_source tests/testAll/source_routing.p4 --json tests/testAll/mtag-edge.json --json_s tests/testAll/source_routing.json --json_mg tests/testAll/merged.json --l tests/testAll/simple_router_with_arp.p4 tests/testAll/flowlet.p4 tests/testAll/portKnockFirewall.p4 tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+
+++++++++++ mtag + simple_w/_arp + tcp + udp - 31 - updated 27++++++++++ 
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/simple_router_with_arp.p4  --shadow_source tests/testAll/mtag-edge.p4 --json tests/testAll/simple_router_with_arp.json --json_s tests/testAll/mtag-edge.json --json_mg tests/testAll/merged.json --l  tests/testAll/flowlet.p4 tests/testAll/portKnockFirewall.p4 tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+
+
+++++++++++ flowlet + source_routing + mtag + udp + simple_w/_arp - 39++++++++++
+
+python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  --shadow_source tests/testAll/flowlet.p4 --json tests/testAll/portKnockFirewall.json --json_s tests/testAll/flowlet.json --json_mg tests/testAll/merged.json --l tests/testAll/heavy_hitter.p4 tests/testAll/source_routing.p4 tests/testAll/mtag-edge.p4  tests/testAll/simple_router.p4 tests/testAll/ecmp.p4 tests/testAll/mc_nat.p4 tests/testAll/timestamp.p4 tests/testAll/simple_router_with_arp.p4 --gen-fig --gen_dir tests/testAll --Diff-testing
+

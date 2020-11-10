@@ -303,7 +303,7 @@ def build_match_value(widths, value):
 def get_match_value_width(widths):
     return sum([(width + 7) / 8 for width in widths])
 
-
+#break p4c_bm/gen_json.py:309
 @static_var("parse_state_id", 0)
 def dump_one_parser(parser_name, parser_id, p4_start_state, keep_pragmas=False):
     parser_dict = OrderedDict()

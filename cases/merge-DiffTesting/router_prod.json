@@ -262,33 +262,8 @@
     "meter_arrays": [],
     "actions": [
         {
-            "name": "count_action",
-            "id": 0,
-            "runtime_data": [
-                {
-                    "name": "idx",
-                    "bitwidth": 32
-                }
-            ],
-            "primitives": [
-                {
-                    "op": "count",
-                    "parameters": [
-                        {
-                            "type": "counter_array",
-                            "value": "ip_src_counter"
-                        },
-                        {
-                            "type": "runtime_data",
-                            "value": 0
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "name": "set_dmac",
-            "id": 1,
+            "id": 0,
             "runtime_data": [
                 {
                     "name": "dmac",
@@ -311,6 +286,17 @@
                             "value": 0
                         }
                     ]
+                }
+            ]
+        },
+        {
+            "name": "_drop",
+            "id": 1,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "drop",
+                    "parameters": []
                 }
             ]
         },
@@ -423,13 +409,27 @@
             ]
         },
         {
-            "name": "_drop",
+            "name": "count_action",
             "id": 4,
-            "runtime_data": [],
+            "runtime_data": [
+                {
+                    "name": "idx",
+                    "bitwidth": 32
+                }
+            ],
             "primitives": [
                 {
-                    "op": "drop",
-                    "parameters": []
+                    "op": "count",
+                    "parameters": [
+                        {
+                            "type": "counter_array",
+                            "value": "ip_src_counter"
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        }
+                    ]
                 }
             ]
         }

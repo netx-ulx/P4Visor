@@ -1,0 +1,5 @@
+2
+ethernet 0 0
+vlan 1 3
+mtag 2 4
+ipv4 3 1

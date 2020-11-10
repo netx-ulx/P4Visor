@@ -1,0 +1,9 @@
+_drop  _drop_SHADOW
+set_nhop  set_nhop_SHADOW
+set_ecmp_select  set_ecmp_select_SHADOW
+ecmp_group  ecmp_group_SHADOW
+ecmp_nhop  ecmp_nhop_SHADOW
+set_dmac  set_dmac_SHADOW
+forward  forward_SHADOW
+rewrite_mac  rewrite_mac_SHADOW
+send_frame  send_frame_SHADOW

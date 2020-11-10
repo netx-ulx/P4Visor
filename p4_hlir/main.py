@@ -28,14 +28,23 @@ logger = logging.getLogger(__name__)
 
 class HLIR():
     def __init__(self, *args):
+	self.my_lists = OrderedDict()
+	
+	self.lStrongEq = OrderedDict()
+	self.lSimpleEq = OrderedDict()
+	self.lWeakEq = OrderedDict()
+	
+
+	self.topo_level = 0
+
+
         self.source_files = [] + list(args)
         self.source_txt = []
         self.preprocessor_args = [] 
         self.analysis_args = {}
         self.primitives = []
-
         self.p4_objects = []
-
+	self.merged_map = OrderedDict()
         self.p4_primitives_ = OrderedDict()
         self.p4_actions = OrderedDict()
         self.p4_control_flows = OrderedDict()
@@ -57,12 +66,10 @@ class HLIR():
         self.p4_conditional_nodes = OrderedDict()
 
         self.calculated_fields = []
-
         self.p4_ingress_ptr = {}
         self.p4_egress_ptr = None
 
         self.primitives = json.loads(pkg_resources.resource_string('p4_hlir.frontend', 'primitives.json'))
-
 
     def version(self):
         return pkg_resources.require("p4-hlir")[0].version
@@ -296,7 +303,7 @@ class HLIR():
 
         # AB testing
         try:
-            p4.p4_validate_shadow_metadata_AB(self)
+            p4.p4_validate(self)
         except p4.p4_compiler_msg as e:
             print e
             return False

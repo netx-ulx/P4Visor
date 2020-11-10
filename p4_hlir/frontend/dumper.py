@@ -314,6 +314,32 @@ def dump_to_p4_P4FieldList(self, hlir):
     entries = []
     for entry in self.entries:
         entries.append(entry.dump_to_p4(hlir))
+	# If the entry is a header (can be metadata)
+	if hasattr(entry, 'name'):
+		#If the header is not in the dictionary
+		if entry.name not in hlir.my_lists:
+			dictTemp = OrderedDict()
+			dictTemp['HEADER'] = [('FieldList', self.name)]
+			hlir.my_lists[entry.name] = dictTemp
+		else:
+			if 'HEADER' not in hlir.my_lists[entry.name]:
+				hlir.my_lists[entry.name]['HEADER'] = ('FieldList', self.name)
+			else:
+				hlir.my_lists[entry.name]['HEADER'].append(('FieldList', self.name))
+	#In case it is a field (e.g., ipv4.version)	
+	else:
+		#if its not a field (integer or sting)
+		if not isinstance(entry, P4FieldRefExpression):
+			continue
+		#If the header is not in the dictionary
+		if entry.header_ref.name not in hlir.my_lists:
+			hlir.my_lists[entry.header_ref.name] = OrderedDict()
+		#if the field is not present
+		if entry.field not in hlir.my_lists[entry.header_ref.name]:
+			hlir.my_lists[entry.header_ref.name][entry.field] = [('FieldList', self.name)]
+		else :
+			hlir.my_lists[entry.header_ref.name][entry.field].append(('FieldList', self.name))
+			 
     g_field_list = p4_field_list(
         hlir,
         self.name, fields = entries,
@@ -367,8 +393,68 @@ def dump_to_p4_P4ValueSet(self, hlir):
 
 def dump_to_p4_P4ParserFunction(self, hlir):
     call_sequence = []
+    extr_header = ''
+	#break p4_hlir/frontend/dumper.py:370
+    
     for call in self.extract_and_set_statements:
-        call_sequence.append(call.dump_to_p4(hlir))
+	call_tmp = call.dump_to_p4(hlir)
+	#Adding extract and select to dictionary
+	if call_tmp[0] == 'extract' :
+		#Check if extracted header is not in the dictionary
+		extr_header = call_tmp[1]
+		if call_tmp[1] not in hlir.my_lists:
+			hlir.my_lists[call_tmp[1]] = OrderedDict()
+		if 'HEADER' not in hlir.my_lists[call_tmp[1]]:
+			hlir.my_lists[call_tmp[1]]['HEADER'] = [('ParserExtract', self.name)]
+		else:
+			hlir.my_lists[call_tmp[1]]['HEADER'].append(('ParserExtract', self.name))
+	
+	#Adding set metadata to dictionary
+	#Only works for at most binary expressions (e.g., set_metadata(header.field, header.field + 1))
+	if isinstance(call, P4ParserSetMetadata) :
+		#check left side	
+		if(isinstance(call.field_ref, P4FieldRefExpression)):
+			leftField = call.field_ref.field
+			leftHeader = call.field_ref.header_ref.name
+			if leftHeader not in hlir.my_lists:
+				hlir.my_lists[leftHeader] = OrderedDict()
+			if leftField not in hlir.my_lists[leftHeader]:
+				hlir.my_lists[leftHeader][leftField] = [('ParserSetMetadata', self.name)]
+			else:
+				hlir.my_lists[leftHeader][leftField].append(('ParserSetMetadata', self.name))
+		#check right side
+		if(isinstance(call.expr, P4BinaryExpression)):
+			handleBinaryExpression(self, hlir, call)
+		if(isinstance(call.expr, P4FieldRefExpression)):
+			rightField = call.expr.field
+			if call.expr.header_ref == 'latest':
+				rightHeader = 'latest'			
+			else:
+				rightHeader = call.expr.header_ref.name
+			if rightHeader not in hlir.my_lists:
+				hlir.my_lists[rightHeader] = OrderedDict()
+			if rightField not in hlir.my_lists[rightHeader]:
+				hlir.my_lists[rightHeader][rightField] = [('ParserSetMetadata', self.name)]
+			else:
+				hlir.my_lists[rightHeader][rightField].append(('ParserSetMetadata', self.name))
+
+	    		
+        call_sequence.append(call_tmp)	
+    #For each field on the select statement
+    if isinstance(self.return_statement, P4ParserSelectReturn):
+	for selectField in self.return_statement.select:
+		if isinstance(selectField, P4FieldRefExpression):
+			if selectField.header_ref == 'latest':
+				if selectField.field not in hlir.my_lists[extr_header]:
+					hlir.my_lists[extr_header][selectField.field] = [('ParserSelect', self.name)]
+				else:
+					hlir.my_lists[extr_header][selectField.field].append(('ParserSelect', self.name))
+			else:
+				if selectField.field not in hlir.my_lists[selectField.header_ref.name]:
+					hlir.my_lists[selectField.header_ref.name][selectField.field] = [('ParserSelect', self.name)]
+				else:
+					hlir.my_lists[selectField.header_ref.name][selectField.field].append(('ParserSelect', self.name))
+
     g_parse_state = p4_parse_state(
         hlir,
         self.name,
@@ -378,6 +464,28 @@ def dump_to_p4_P4ParserFunction(self, hlir):
         lineno = self.lineno
     )
     g_parse_state._pragmas = self._pragmas.copy()
+
+
+def handleBinaryExpression(self, hlir, call):
+	if isinstance(call.expr.left, P4FieldRefExpression):
+		leftField = call.expr.left.field
+		leftHeader = call.expr.left.header_ref.name
+		if leftHeader not in hlir.my_lists:
+			hlir.my_lists[leftHeader] = OrderedDict()
+		if leftField not in hlir.my_lists[leftHeader]:
+			hlir.my_lists[leftHeader][leftField] = [('ParserSetMetadata', self.name)]
+		else:
+			hlir.my_lists[leftHeader][leftField].append(('ParserSetMetadata', self.name))	
+	
+	if isinstance(call.expr.right, P4FieldRefExpression):
+		rightField = call.expr.right.field
+		rightHeader = call.expr.right.header_ref.name
+		if rightHeader not in hlir.my_lists:
+			hlir.my_lists[rightHeader] = OrderedDict()
+		if rightField not in hlir.my_lists[rightHeader]:
+			hlir.my_lists[rightHeader][rightField] = [('ParserSetMetadata', self.name)]
+		else:
+			hlir.my_lists[rightHeader][rightField].append(('ParserSetMetadata', self.name))
 
 def dump_to_p4_P4Counter(self, hlir, program_version=0, config_dir=None):
     type_ = {
@@ -447,7 +555,7 @@ def dump_to_p4_P4Meter(self, hlir, program_version=0, config_dir=None):
 
     if program_version == TestingVersion:
         rename_str = self.name + _ShadowFlag_
-        if config_mir == None:
+        if config_dir == None:
             config_dir = "."
 
         filename = os.path.join(config_dir, P4VisorConfigure)
@@ -541,7 +649,11 @@ def dump_to_p4_P4ActionFunction(self, hlir, program_version=0, config_dir=None):
         self.name = self.name + _ShadowFlag_
         # print 'DBG|action:', pprint(vars(self))
     signature = self.formals
-    call_sequence = [call.dump_to_p4(hlir, program_version=program_version) for call in self.action_body]
+    call_sequence = []
+    for call in self.action_body:
+	handle_primitive(call, hlir, self.name)
+	call_sequence.append(call.dump_to_p4(hlir, program_version=program_version))
+ 
     g_action = p4_action(
         hlir,
         self.name,
@@ -555,6 +667,10 @@ def dump_to_p4_P4ActionFunction(self, hlir, program_version=0, config_dir=None):
 def dump_to_p4_P4ActionCall(self, hlir, program_version=0):
     action_primitive = self.action.dump_to_p4(hlir, program_version=program_version)
     arg_list = [arg.dump_to_p4(hlir) for arg in self.arg_list]
+    #if action_primitive == 'modify_field':
+	#handle_modify_field(self,hlir)
+    #else if action_primitive == 'add_header':
+	#handle_add_header(self,hlir)
     # We change the args refer to registers for each primitves
     # Important TODO: add more primitives
     if program_version == TestingVersion:
@@ -567,10 +683,39 @@ def dump_to_p4_P4ActionCall(self, hlir, program_version=0):
 
     return (action_primitive, arg_list)
 
+def handle_primitive(call, hlir, actionName):
+	for entry in call.arg_list:
+		if isinstance(entry, P4FieldRefExpression):
+			header = entry.header_ref.name
+			field = entry.field
+			locationType = call.action.name
+			add_to_dictionary(header, field, hlir, locationType, actionName)
+
+
+def add_to_dictionary(header, field, hlir, locationType, locationName ):
+	#check if header is not in the dictionary
+	if header not in hlir.my_lists:
+		hlir.my_lists[header] = OrderedDict()
+	if field not in hlir.my_lists[header]:
+		hlir.my_lists[header][field] = [(locationType, locationName)]
+	else:
+		hlir.my_lists[header][field].append((locationType, locationName))
+
 def dump_to_p4_P4Table(self, hlir, program_version=0, config_dir=None):
-    # for read in self.reads:
+    match_fields = [] 
+    for read in self.reads:
+	match_fields.append(read.dump_to_p4(hlir))
+	if isinstance(read.field_or_masked[0], P4FieldRefExpression):
+		#If header not in dictionary
+		if read.field_or_masked[0].header_ref.name not in hlir.my_lists:
+			hlir.my_lists[read.field_or_masked[0].header_ref.name] = OrderedDict()
+		#If the field is not present
+		if read.field_or_masked[0].field not in hlir.my_lists[read.field_or_masked[0].header_ref.name]:
+			hlir.my_lists[read.field_or_masked[0].header_ref.name][read.field_or_masked[0].field] = [('Table', self.name)]
+		else:
+			hlir.my_lists[read.field_or_masked[0].header_ref.name][read.field_or_masked[0].field].append(('Table', self.name))
     #     print 'DBG|DUMPER|P4Table: self.reads:', read
-    match_fields = [read.dump_to_p4(hlir) for read in self.reads]
+    #match_fields = [read.dump_to_p4(hlir) for read in self.reads]
     if self.action_spec:
         print 'DBG|HLIR|frontend|rename action call:', self.action_spec
         for action in self.action_spec:
@@ -802,9 +947,16 @@ def dump_to_p4_P4HeaderRefExpression(self, hlir):
         return self.name
 
 def dump_to_p4_P4ParserExtract(self, hlir):
+    #get extracted header 
+    #if header not in dict
+    #if self.header_ref not in hlir.my_lists:
+	#hlir.my_lists[self.header_ref] = OrderedDict()
+    #if 'HEADER' not in hlir.my_lists[self.header_ref]:
+	#hlir.my_lists[self.header_ref]['HEADER'] = [('ParserExtract', 
     return ("extract", self.header_ref.dump_to_p4(hlir))
 
-def dump_to_p4_P4ParserSetMetadata(self, hlir):
+def dump_to_p4_P4ParserSetMetadata(self, hlir):	
+    #get metadata/header fields (need recursive method for expression inception)
     if type(self.expr) is int:
         value = self.expr
     elif type(self.expr) is P4CurrentExpression:

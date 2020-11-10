@@ -127,6 +127,11 @@ class p4_parse_state (p4_object):
         self.branch_to = OrderedDict()
         self.prev = OrderedSet()
         self.latest_extraction = None
+	
+
+	self.bitstream_pos = []
+	self.topo_level = 0
+	self.id = 0
 
         hlir.p4_parse_states[self.name] = self
 

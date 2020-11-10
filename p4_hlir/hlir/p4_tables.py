@@ -249,6 +249,9 @@ def _p4_control_flow_to_table_graph(hlir,
             call_entry = p4_conditional_node (hlir, call[0], program_version=program_version)
             call_entry.control_flow_parent = parent_fn.name
             call_entry.conditional_barrier = conditional_barrier
+	
+	    #add potential headers to hlir dict
+	    add_header_to_hlir_dict(hlir, call_entry)
 
             visited_true = set()
             visited_false = set()
@@ -399,6 +402,30 @@ def _p4_control_flow_to_table_graph(hlir,
             parents = next_parents
 
     return entry, parents
+
+def add_header_to_hlir_dict(hlir, call_entry):
+    #structure --> (left op right)
+    #check left side 
+    if isinstance(call_entry.condition.left, p4_headers.p4_field):
+	#If header not in dictionary
+	if call_entry.condition.left.instance.name not in hlir.my_lists:
+		hlir.my_lists[call_entry.condition.left.instance.name] = OrderedDict()
+	#if field not in dictionary
+	if call_entry.condition.left.name not in hlir.my_lists[call_entry.condition.left.instance.name] :
+		hlir.my_lists[call_entry.condition.left.instance.name][call_entry.condition.left.name] = [('ConditionLeft', call_entry.name)]
+	else:
+		hlir.my_lists[call_entry.condition.left.instance.name][call_entry.condition.left.name].append(('ConditionLeft', call_entry.name))
+    #check right side
+    if isinstance(call_entry.condition.right, p4_headers.p4_field):
+	#If header not in dictionary
+	if call_entry.condition.right.instance.name not in hlir.my_lists:
+		hlir.my_lists[call_entry.condition.right.instance.name] = OrderedDict()
+	#if field not in dictionary
+	if call_entry.condition.right.name not in hlir.my_lists[call_entry.condition.right.instance.name] :
+		hlir.my_lists[call_entry.condition.right.instance.name][call_entry.condition.right.name] = [('ConditionRight', call_entry.name)]
+	else:
+		hlir.my_lists[call_entry.condition.right.instance.name][call_entry.condition.right.name].append(('ConditionRight', call_entry.name))
+		 
 
 # TODO: write something more generic
 def _find_modified_hdrs(action_set):

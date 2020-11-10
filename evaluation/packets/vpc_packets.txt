@@ -1,0 +1,2 @@
+Upvn(pvid = x, p_map = y)/Ether(type=1911)/vpc(etherType=2048)/IP()/arp_rarp_ipv4()
+Upvn(pvid = x, p_map = y)/Ether(type=1911)/vpc(etherType=2048)/IP()/TCP()

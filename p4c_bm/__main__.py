@@ -14,6 +14,10 @@ import sys
 import gen_json
 import gen_pd
 import json
+from itertools import permutations
+from random import randrange
+import datetime
+from collections import OrderedDict
 from pkg_resources import resource_string
 import version
 from copy import deepcopy
@@ -25,6 +29,10 @@ from p4_hlir.graphs import dependency_graph
 import p4_hlir.graphs.hlir_info as info
 import p4_hlir.graphs.dot as dot
 import SP4_merge
+
+import numpy as np
+import matplotlib as mpl 
+import matplotlib.pyplot as plt 
 
 def get_parser():
     parser = argparse.ArgumentParser(description='P4Visor compiler bmv2 arguments')
@@ -42,6 +50,8 @@ def get_parser():
     parser.add_argument('--json_mg', dest='json_mg', type=str,
                         help='Dump the JSON representation to merged P4 file.',
                         required=False)
+
+    parser.add_argument('-l', '--list', nargs = '*', required= False)
     
     parser.add_argument('--gen_dir', dest='gen_dir', type=str,
                         help='The dir for the generated shadow configure files and graphs.',
@@ -181,6 +191,76 @@ def build_table_graph_ingress(hlir):
 def build_table_graph_egress(hlir):
     return generate_graph(hlir.p4_egress_ptr, "egress")
 
+def build_hlir(hlir, preprocessor_args, args):
+	from p4_hlir.main import HLIR
+        primitives_res = 'primitives.json'
+	# if no -D__TARGET_* flag defined, we add a default bmv2 one
+	if True not in map(lambda f: "-D__TARGET_" in f, preprocessor_args):
+		hlir.add_preprocessor_args("-D__TARGET_BMV2__")
+	for parg in preprocessor_args:
+		hlir.add_preprocessor_args(parg)
+
+	# in addition to standard P4 primitives
+	more_primitives = json.loads(resource_string(__name__, primitives_res))
+	hlir.add_primitives(more_primitives)
+
+	# user-provided primitives
+	for primitive_path in args.primitives:
+		_validate_file(primitive_path)
+		with open(primitive_path, 'r') as f:
+			hlir.add_primitives(json.load(f))
+
+	if not hlir.build(analyze=False, program_version=10000):
+		print "Error while building real P4 HLIR"
+		sys.exit(1)
+
+	return hlir
+
+def merge_sequence(sequence, preprocessor_args, args, dir_path):
+	from p4_hlir.main import HLIR
+	h_meta = HLIR(dir_path)
+	h_meta = build_hlir(h_meta, preprocessor_args, args)
+
+	h_s = HLIR(sequence[0])
+	h_s = build_hlir(h_s, preprocessor_args, args)
+
+	h_r = HLIR(sequence[1])
+	h_r = build_hlir(h_r, preprocessor_args, args)
+
+	# create first merge
+	h_mg = SP4_merge.SP4_DF_merge_p4_objects(False, h_r, h_s, h_meta, '')
+	pvid = 2
+	for name in sequence[2:]:
+		hlir = HLIR(name)
+		hlir = build_hlir(hlir, preprocessor_args, args)
+		h_mg = SP4_merge.SP4_DF_merge_p4_objects(False, hlir, h_mg, h_meta, str(pvid))
+		pvid = pvid + 1
+	
+	#delete duplicate transitions
+	for key, state in h_mg.p4_parse_states.items():
+		SP4_merge.delete_transitions_and_id(state)
+		
+	SP4_merge.delete_virtual_parser(h_mg)
+	SP4_merge.add_set_metadata(h_mg)
+
+	total_mg, select_max_mg, select_min_mg, transitions_mg , states_mg, headers_mg = SP4_merge.get_eval(h_mg)
+	return transitions_mg
+
+def print_all_select_entries(h_mg):
+	import p4_hlir
+	default = p4_hlir.hlir.p4_parser.P4_DEFAULT
+	print_file = open('select_entries.txt', 'w')
+	for name, state in h_mg.p4_parse_states.items():
+		print_file.write('--------' + name + '---------- \n')
+		for key, next_state in state.branch_to.items():
+			if key == default:
+				print_file.write(key.value + ' ---------> ' + next_state.name + '\n')
+			else:
+				print_file.write(str(key) + ' ---------> ' + next_state.name + '\n')
+		print_file.write('\n')
+	print_file.close()
+
+
 def main():
     parser = get_parser()
     input_args = sys.argv[1:]
@@ -285,7 +365,7 @@ def main():
                 print "ERR|p4c_bm|main|Error while building shadow metadata HLIR"
                 sys.exit(1)
         
-
+	
     ## 1. build production program HLIR and json
         h_r = HLIR(args.real_source)
 
@@ -308,7 +388,7 @@ def main():
         if not h_r.build(analyze=False, program_version=10000):
             print "Error while building real P4 HLIR"
             sys.exit(1)
-
+	 
         OPT_generate_real_json = True
         if OPT_generate_real_json:
             json_dict = gen_json.json_dict_create(h_r, path_field_aliases, p4_v1_1,
@@ -334,6 +414,75 @@ def main():
                 dot.export_table_graph(h_r, basename, gen_dir, predecessors=False, no_dot=True)
             if OPT_gen_graph_deps:
                 dot.export_table_dependency_graph(h_r, basename, gen_dir, show_conds = True, no_dot=True)
+
+	#Create file with preliminar ids for h_r states
+	h_r_translation_name = args.real_source.split('/')[2]
+	h_r_translation_name = h_r_translation_name[:len( h_r_translation_name)-3]
+	h_r_translation_name = 'evaluation/translations/' + h_r_translation_name + '_translation.txt'
+	
+	h_r_f = open(h_r_translation_name, "w") 
+	r_id = 0
+	h_r_f.write(str(15) + '\n')
+	for name, state in h_r.p4_parse_states.items():
+		if name == 'start':
+			continue
+		h_r_f.write(name + ' ' + str(r_id) + '\n')
+		r_id = r_id + 1
+	
+	h_r_f.close()
+	
+
+
+	#TEST BUILD 1:
+	# BUILD H_R2 USING SAME SOURCE FROM H_R
+	hlir_list = []
+	tmp_pvid = 2
+	
+	if args.list:
+		for p_name in args.list:
+			hlir = HLIR(p_name)
+
+			# if no -D__TARGET_* flag defined, we add a default bmv2 one
+			if True not in map(lambda f: "-D__TARGET_" in f, preprocessor_args):
+			    hlir.add_preprocessor_args("-D__TARGET_BMV2__")
+			for parg in preprocessor_args:
+			    hlir.add_preprocessor_args(parg)
+
+			# in addition to standard P4 primitives
+			more_primitives = json.loads(resource_string(__name__, primitives_res))
+			hlir.add_primitives(more_primitives)
+
+			# user-provided primitives
+			for primitive_path in args.primitives:
+			    _validate_file(primitive_path)
+			    with open(primitive_path, 'r') as f:
+				hlir.add_primitives(json.load(f))
+
+			if not hlir.build(analyze=False, program_version=10000):
+			    print "Error while building real P4 HLIR"
+			    sys.exit(1)
+
+			hlir_list.append(hlir)
+  			
+			#Create _translation file
+			h_diff_translation_name = p_name.split('/')[2]
+			h_diff_translation_name = h_diff_translation_name[:len( h_diff_translation_name)-3]
+			h_diff_translation_name = 'evaluation/translations/' + h_diff_translation_name + '_translation.txt'
+			h_diff_f = open(h_diff_translation_name, "w") 
+
+			diff_id = 0
+			h_diff_f.write(str(tmp_pvid) + '\n')
+			tmp_pvid = tmp_pvid + 1
+			for name, state in hlir.p4_parse_states.items():
+				if name == 'start':
+					continue
+				h_diff_f.write(name + ' ' + str(diff_id) + '\n')
+				diff_id = diff_id + 1
+			
+			h_diff_f.close()
+			
+			
+
 
 
     ## 2. build testing program HLIR and json
@@ -379,6 +528,21 @@ def main():
                     dot.export_table_dependency_graph(h_s, basename, gen_dir,
                                                     show_conds = True, no_dot=True)
             # return
+	    #Create file with preliminar ids for h_r states
+	    h_s_translation_name = args.shadow_source.split('/')[2]
+	    h_s_translation_name = h_s_translation_name[:len( h_s_translation_name)-3]
+	    h_s_translation_name = 'evaluation/translations/' + h_s_translation_name + '_translation.txt'
+	
+	    h_s_f = open(h_s_translation_name, "w") 
+	    s_id = 0
+	    h_s_f.write(str(1)+ '\n')
+	    for name, state in h_s.p4_parse_states.items():
+		    if name == 'start':
+			    continue
+		    h_s_f.write(name + ' ' + str(s_id) + '\n')
+		    s_id = s_id + 1
+	
+	    h_s_f.close()
 
 
     ## 3. build dependency graph for the merged program
@@ -529,23 +693,262 @@ def main():
     ## 4.0 read heuristic result
 
             # read the heuristic result
-            file = open(ingress_res_file, "r") 
-            for each in file.readlines():
-                h_s_ingress_graph.SP4_merge_id.append(int(each))
+            #file = open(ingress_res_file, "r") 
+            #for each in file.readlines():
+                #h_s_ingress_graph.SP4_merge_id.append(int(each))
             
             # TODO: fix the number later
-            h_s_egress_graph.SP4_merge_id.append(1)
+            #h_s_egress_graph.SP4_merge_id.append(1)
 
-            if OPT_get_tables_summary:                
-                h_r_ingress_graph.SP4_reduce_reuse_tables(h_s)
+            #if OPT_get_tables_summary:                
+                #h_r_ingress_graph.SP4_reduce_reuse_tables(h_s)
+	    first_time = datetime.datetime.now()
+	    if False:
+		    ## RUNNING ALL PERMUTATIONS FOR BEST MERGE SEQUENCE
+		    prog_paths_list = []
+		    if args.list:
+		    	prog_paths_list = args.list
+		    
+		    prog_paths_list.append(args.shadow_source)
+		    prog_paths_list.append(args.real_source)
+
+		    #all possible permutations 
+		    perms = list(permutations(prog_paths_list))
+		    min_transitions = 1000000
+		    best = ''
+		    dir_path = dir_path + '/SP4_metas_diff.p4'
+		    count = 1
+		    for current in perms:
+			current_file = open('current.txt', 'w')
+			current_file.write(str(current))
+			current_file.close()
+		    	transitions = merge_sequence(current, preprocessor_args, args, dir_path)
+			if transitions < min_transitions:
+				min_transitions = transitions
+				best = current
+		    
+		    best_merge_file = open('best_merge_sequence.txt', 'w')
+		    best_merge_file.write(str(best)+'\n')
+		    best_merge_file.write(str(min_transitions))
+		    best_merge_file.close()
+
+	    last_time = datetime.datetime.now()
+
+	    if False:
+		dir_path = dir_path + '/SP4_metas_diff.p4'
+		prog_paths_list = []
+		if args.list:
+			prog_paths_list = args.list
+		    
+		prog_paths_list.append(args.shadow_source)
+		prog_paths_list.append(args.real_source)
+		average_transitions = open('average_transitions.txt','w')
+		data_to_plot = []
+		mpl.use('agg')
+		#all possible permutations 
+		perms = list(permutations(prog_paths_list))
+		counter = 0
+		for i in range(20):
+			tmp_list = []
+			for j in range(10):
+				index = randrange(len(perms))
+				transitions = merge_sequence(perms[index], preprocessor_args, args, dir_path)
+				tmp_list.append(transitions)
+				
+			best_result = min(tmp_list)
+			
+			average_transitions.write('Best result in Test ' + str(counter) + ': ' + str(best_result) + 
+								' transitions. \n')
+			average_transitions.write('Average result in Test ' + str(counter) + ': ' + str( (sum(tmp_list) / len(tmp_list)) ) +
+								' transitions. \n')
+			average_transitions.write('Sample standard deviation in Test ' + str(counter) + ': ' + str(np.std(tmp_list, ddof=1)) + '\n')
+			average_transitions.write('90th Percentile in Test '  + str(counter) + ': ' + str(np.percentile(tmp_list, 90)) + '\n')
+			average_transitions.write('10th Percentile in Test '  + str(counter) + ': ' + str(np.percentile(tmp_list, 10)) + '\n \n')
+
+			data_to_plot.append(tmp_list)
+			
+			counter = counter + 1
+		average_transitions.close()
+		# Create a figure instance
+		fig = plt.figure(1, figsize=(9, 6))
+
+		# Create an axes instance
+		ax = fig.add_subplot(111)
+
+		# Create the boxplot
+		bp = ax.boxplot(data_to_plot)
+
+		# Save the figure
+		fig.savefig('box_plot.png', bbox_inches='tight')
+					
 
     ## 5.0 merging hlir
             if AB_T:
                 h_mg = SP4_merge.SP4_AB_merge_p4_objects(p4_v1_1, h_r, h_s, h_meta)
             elif DF_T:
-                h_mg = SP4_merge.SP4_DF_merge_p4_objects(p4_v1_1, h_r, h_s, h_meta)
+		#EVALUATION METRICS FOR R AND S
+		total_s, select_max_s, select_min_s, transitions_s , states_s, headers_s = SP4_merge.get_eval(h_s)		
+		total_r, select_max_r, select_min_r, transitions_r , states_r, headers_r = SP4_merge.get_eval(h_r)
 
-            json_dict_mg = gen_json.json_dict_create(h_mg, path_field_aliases, p4_v1_1,
+
+		
+                h_mg = SP4_merge.SP4_DF_merge_p4_objects(p4_v1_1, h_r, h_s, h_meta, '')
+		hlir_dict = OrderedDict()
+		pvid = 2
+
+		#EVALUATION METRICS FOR ADDITIONAL PROGRAMS
+		for hlir in hlir_list:
+			total_r2, select_max_r2, select_min_r2, transitions_r2 , states_r2, headers_r2 = SP4_merge.get_eval(hlir)
+			hlir_dict[hlir] = (total_r2, select_max_r2, select_min_r2, transitions_r2 , states_r2, headers_r2)
+			h_mg = SP4_merge.SP4_DF_merge_p4_objects(p4_v1_1, hlir, h_mg, h_meta, str(pvid))
+			pvid += 1
+		
+		
+		#delete duplicate transitions
+	        for key, state in h_mg.p4_parse_states.items():
+			SP4_merge.delete_transitions_and_id(state)
+		
+		SP4_merge.delete_virtual_parser(h_mg)
+		SP4_merge.add_set_metadata(h_mg)
+		
+		
+		difference = last_time - first_time
+	    	time_file = open('time.txt','w')
+		time_file.write(str(difference.total_seconds()))
+		time_file.close()
+
+		#EVALUATION METRICS - AFTER MERGE
+		total_mg, select_max_mg, select_min_mg, transitions_mg , states_mg, headers_mg = SP4_merge.get_eval(h_mg)
+		
+		print_all_select_entries(h_mg)
+
+		#add new id (id in merged program) of each state for h_r program
+		r_file = open(h_r_translation_name, 'r')
+		r_entries = r_file.readlines()
+		r_file.close()
+		new_r_file = open(h_r_translation_name, 'w')
+		for line in r_entries:
+ 			if line == r_entries[0]:
+				new_r_file.write(line)
+				continue
+			line = line[:len(line)-1]
+			line = line.split(' ')
+			state_mg = h_r.merged_map[line[0]]
+			id_in_mg = h_mg.p4_parse_states[state_mg].id
+			line.append(str(id_in_mg) +'\n')
+			line = ' '.join(line)
+			new_r_file.write(line)
+		new_r_file.close()
+
+		#add new id (id in merged program) of each state for h_s program
+		s_file = open(h_s_translation_name, 'r')
+		s_entries = s_file.readlines()
+		s_file.close()
+		new_s_file = open(h_s_translation_name, 'w')
+		
+		for line in s_entries:
+ 			if line == s_entries[0]:
+				new_s_file.write(line)
+				continue
+			line = line[:len(line)-1]
+			line = line.split(' ')
+			id_in_mg = h_mg.p4_parse_states[line[0]].id
+			line.append(str(id_in_mg) +'\n')
+			line = ' '.join(line)
+			new_s_file.write(line)
+		new_s_file.close()
+		
+		#for each extra program, add new id (id in merged program)
+		if args.list:
+			for hlir in hlir_list:
+           			p_name = hlir.source_files[0]
+				h_diff_translation_name = p_name.split('/')[2]
+				h_diff_translation_name = h_diff_translation_name[:len( h_diff_translation_name)-3]
+				h_diff_translation_name = 'evaluation/translations/' + h_diff_translation_name + '_translation.txt'
+				diff_file = open(h_diff_translation_name, 'r')
+				diff_entries = diff_file.readlines()
+				diff_file.close()
+				new_diff_file = open(h_diff_translation_name, 'w')
+				
+				for line in diff_entries:
+					if line == diff_entries[0]:
+						new_diff_file.write(line)
+						continue
+					line = line[:len(line)-1]
+					line = line.split(' ')
+					mg_name = hlir.merged_map[line[0]]
+					id_in_mg = h_mg.p4_parse_states[mg_name].id
+					line.append(str(id_in_mg) +'\n')
+					line = ' '.join(line)
+					new_diff_file.write(line)
+				new_diff_file.close()
+		
+		tmp = h_r.source_files[0]
+		h_r_name = tmp.split('/')[2]
+
+		tmp = h_s.source_files[0]
+		h_s_name = tmp.split('/')[2]
+
+		f = open("evalFinal.txt", "w")
+    		f.write('BEFORE THE MERGE\n')	
+    		f.write('----------------HEADERS-------------------- \n')
+		f.write('Number of headers of program '+ h_s_name + ': ' + str(headers_s) + '\n')
+    		f.write('Number of headers of program '+ h_r_name + ': ' + str(headers_r) + '\n')
+		for hlir in hlir_list:
+			tmp = hlir.source_files[0]
+			hlir_name = tmp.split('/')[2]
+			f.write('Number of headers of program '+ hlir_name + ': ' + str(hlir_dict[hlir][5]) + '\n')
+
+            	f.write('----------------STATES--------------------- \n')
+	        f.write('Number of states of program '+ h_s_name + ': ' + str(states_s) + '\n')
+	        f.write('Number of states of program '+ h_r_name + ': ' + str(states_r) + '\n')
+		for hlir in hlir_list:
+			tmp = hlir.source_files[0]
+			hlir_name = tmp.split('/')[2]
+			f.write('Number of states of program '+ hlir_name + ': ' + str(hlir_dict[hlir][4]) + '\n')
+
+	        f.write('--------------TRANSITIONS------------------ \n')
+	        f.write('Number of transitions of program '+ h_s_name + ': ' + str(transitions_s) + '\n')
+	        f.write('Number of transitions of program '+ h_r_name + ': ' + str(transitions_r) + '\n')
+		for hlir in hlir_list:
+			tmp = hlir.source_files[0]
+			hlir_name = tmp.split('/')[2]
+			f.write('Number of transitions of program '+ hlir_name + ': ' + str(hlir_dict[hlir][3]) + '\n')
+
+		f.write('--------------SELECT SIZE------------------ \n')
+		f.write('Max, min and average select width of program '+ h_s_name + ': ' + str(select_max_s) + ' | ' + str(select_min_s)+' | ' + str(total_s) + '\n')
+		f.write('Max, min and average select width of program '+ h_r_name + ': ' + str(select_max_r) + ' | ' + str(select_min_r)+ ' | ' + str(total_r) +'\n')
+		for hlir in hlir_list:
+			tmp = hlir.source_files[0]
+			hlir_name = tmp.split('/')[2]
+			f.write('Max, min and average select width of program '+ hlir_name + ': ' + str(hlir_dict[hlir][1]) + ' | ' + str(hlir_dict[hlir][2])+ ' | ' + str(hlir_dict[hlir][0]) +'\n')
+
+		f.write('\n \n\n\n')
+		#######################################################
+
+		f.write('AFTER THE MERGE\n')	
+    		f.write('----------------HEADERS-------------------- \n')
+		f.write('Number of headers of merged program: ' + str(headers_mg) + '\n')
+
+            	f.write('----------------STATES--------------------- \n')
+	        f.write('Number of states of merged program: ' + str(states_mg) + '\n')
+
+	        f.write('--------------TRANSITIONS------------------ \n')
+	        f.write('Number of transitions of merged program: ' + str(transitions_mg) + '\n')
+		
+		f.write('--------------SELECT SIZE------------------ \n')
+		f.write('Max, min and average select width of merged program: ' + str(select_max_mg) + ' | ' + str(select_min_mg)+ ' | ' + str(total_mg) +  '\n')
+		f.write('\n')
+		f.write('STATE IDS: \n')
+		state_id = 0
+		for name, state in h_mg.p4_parse_states.items():
+			if name == 'start' or name == 'parse_upvn':
+				continue
+			f.write(name + ' : ' + str(state_id) + '\n')
+			state_id = state_id +1
+		f.close()
+
+	    json_dict_mg = gen_json.json_dict_create(h_mg, path_field_aliases, p4_v1_1,
                                               args.keep_pragmas)
 
             print "Generating MERGED P4 json output to", path_json_mg

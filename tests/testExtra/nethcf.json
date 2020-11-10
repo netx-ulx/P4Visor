@@ -1,0 +1,4035 @@
+{
+    "__meta__": {
+        "version": [
+            2,
+            5
+        ],
+        "compiler": "ShadowP4 compiler: https://github.com/Lineson/SP4c-bm.git"
+    },
+    "header_types": [
+        {
+            "name": "standard_metadata_t",
+            "id": 0,
+            "fields": [
+                [
+                    "ingress_port",
+                    9
+                ],
+                [
+                    "packet_length",
+                    32
+                ],
+                [
+                    "egress_spec",
+                    9
+                ],
+                [
+                    "egress_port",
+                    9
+                ],
+                [
+                    "egress_instance",
+                    32
+                ],
+                [
+                    "instance_type",
+                    32
+                ],
+                [
+                    "clone_spec",
+                    32
+                ],
+                [
+                    "_padding",
+                    5
+                ]
+            ],
+            "length_exp": null,
+            "max_length": null
+        },
+        {
+            "name": "ethernet_t",
+            "id": 1,
+            "fields": [
+                [
+                    "dstAddr",
+                    48
+                ],
+                [
+                    "srcAddr",
+                    48
+                ],
+                [
+                    "etherType",
+                    16
+                ]
+            ],
+            "length_exp": null,
+            "max_length": null
+        },
+        {
+            "name": "ipv4_t",
+            "id": 2,
+            "fields": [
+                [
+                    "version",
+                    4
+                ],
+                [
+                    "ihl",
+                    4
+                ],
+                [
+                    "diffserv",
+                    8
+                ],
+                [
+                    "totalLen",
+                    16
+                ],
+                [
+                    "identification",
+                    16
+                ],
+                [
+                    "flags",
+                    3
+                ],
+                [
+                    "fragOffset",
+                    13
+                ],
+                [
+                    "ttl",
+                    8
+                ],
+                [
+                    "protocol",
+                    8
+                ],
+                [
+                    "hdrChecksum",
+                    16
+                ],
+                [
+                    "srcAddr",
+                    32
+                ],
+                [
+                    "dstAddr",
+                    32
+                ]
+            ],
+            "length_exp": null,
+            "max_length": null
+        },
+        {
+            "name": "tcp_t",
+            "id": 3,
+            "fields": [
+                [
+                    "srcPort",
+                    16
+                ],
+                [
+                    "dstPort",
+                    16
+                ],
+                [
+                    "seqNo",
+                    32
+                ],
+                [
+                    "ackNo",
+                    32
+                ],
+                [
+                    "dataOffset",
+                    4
+                ],
+                [
+                    "res",
+                    3
+                ],
+                [
+                    "ecn",
+                    3
+                ],
+                [
+                    "urg",
+                    1
+                ],
+                [
+                    "ack",
+                    1
+                ],
+                [
+                    "psh",
+                    1
+                ],
+                [
+                    "rst",
+                    1
+                ],
+                [
+                    "syn",
+                    1
+                ],
+                [
+                    "fin",
+                    1
+                ],
+                [
+                    "window",
+                    16
+                ],
+                [
+                    "checksum",
+                    16
+                ],
+                [
+                    "urgentPtr",
+                    16
+                ]
+            ],
+            "length_exp": null,
+            "max_length": null
+        },
+        {
+            "name": "routing_metadata_t",
+            "id": 4,
+            "fields": [
+                [
+                    "tcpLength",
+                    16
+                ]
+            ],
+            "length_exp": null,
+            "max_length": null
+        },
+        {
+            "name": "meta_t",
+            "id": 5,
+            "fields": [
+                [
+                    "nethcf_enable_flag",
+                    1
+                ],
+                [
+                    "nethcf_state",
+                    1
+                ],
+                [
+                    "packet_hop_count",
+                    8
+                ],
+                [
+                    "ip_for_match",
+                    32
+                ],
+                [
+                    "ip2hc_index",
+                    23
+                ],
+                [
+                    "ip2hc_hit_flag",
+                    1
+                ],
+                [
+                    "ip2hc_hop_count",
+                    8
+                ],
+                [
+                    "ip2hc_counter_value",
+                    8
+                ],
+                [
+                    "ip2hc_valid_flag",
+                    1
+                ],
+                [
+                    "dirty_hc_hit_flag",
+                    1
+                ],
+                [
+                    "temporary_bitmap_index",
+                    4
+                ],
+                [
+                    "temporary_bitarray",
+                    32
+                ],
+                [
+                    "hop_count_bitarray",
+                    32
+                ],
+                [
+                    "update_ip2hc_flag",
+                    1
+                ],
+                [
+                    "session_index",
+                    8
+                ],
+                [
+                    "session_state",
+                    2
+                ],
+                [
+                    "session_seq",
+                    32
+                ],
+                [
+                    "session_monitor_result",
+                    3
+                ],
+                [
+                    "ack_seq_diff",
+                    32
+                ],
+                [
+                    "packet_tag",
+                    2
+                ],
+                [
+                    "src_dst_ip",
+                    32
+                ],
+                [
+                    "src_dst_port",
+                    16
+                ],
+                [
+                    "src_dst_mac",
+                    48
+                ]
+            ],
+            "length_exp": null,
+            "max_length": null
+        }
+    ],
+    "headers": [
+        {
+            "name": "standard_metadata",
+            "id": 0,
+            "header_type": "standard_metadata_t",
+            "metadata": true
+        },
+        {
+            "name": "ethernet",
+            "id": 1,
+            "header_type": "ethernet_t",
+            "metadata": false
+        },
+        {
+            "name": "ipv4",
+            "id": 2,
+            "header_type": "ipv4_t",
+            "metadata": false
+        },
+        {
+            "name": "routing_metadata",
+            "id": 3,
+            "header_type": "routing_metadata_t",
+            "metadata": true
+        },
+        {
+            "name": "tcp",
+            "id": 4,
+            "header_type": "tcp_t",
+            "metadata": false
+        },
+        {
+            "name": "meta",
+            "id": 5,
+            "header_type": "meta_t",
+            "metadata": true
+        }
+    ],
+    "header_stacks": [],
+    "parsers": [
+        {
+            "name": "parser",
+            "id": 0,
+            "init_state": "start",
+            "parse_states": [
+                {
+                    "name": "start",
+                    "id": 0,
+                    "parser_ops": [],
+                    "transition_key": [],
+                    "transitions": [
+                        {
+                            "type": "default",
+                            "value": null,
+                            "mask": null,
+                            "next_state": "parse_ethernet"
+                        }
+                    ]
+                },
+                {
+                    "name": "parse_ethernet",
+                    "id": 1,
+                    "parser_ops": [
+                        {
+                            "op": "extract",
+                            "parameters": [
+                                {
+                                    "type": "regular",
+                                    "value": "ethernet"
+                                }
+                            ]
+                        }
+                    ],
+                    "transition_key": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "etherType"
+                            ]
+                        }
+                    ],
+                    "transitions": [
+                        {
+                            "type": "hexstr",
+                            "value": "0x0800",
+                            "mask": null,
+                            "next_state": "parse_ipv4"
+                        },
+                        {
+                            "type": "default",
+                            "value": null,
+                            "mask": null,
+                            "next_state": null
+                        }
+                    ]
+                },
+                {
+                    "name": "parse_ipv4",
+                    "id": 2,
+                    "parser_ops": [
+                        {
+                            "op": "extract",
+                            "parameters": [
+                                {
+                                    "type": "regular",
+                                    "value": "ipv4"
+                                }
+                            ]
+                        },
+                        {
+                            "op": "set",
+                            "parameters": [
+                                {
+                                    "type": "field",
+                                    "value": [
+                                        "routing_metadata",
+                                        "tcpLength"
+                                    ]
+                                },
+                                {
+                                    "type": "expression",
+                                    "value": {
+                                        "type": "expression",
+                                        "value": {
+                                            "op": "-",
+                                            "left": {
+                                                "type": "field",
+                                                "value": [
+                                                    "ipv4",
+                                                    "totalLen"
+                                                ]
+                                            },
+                                            "right": {
+                                                "type": "hexstr",
+                                                "value": "0x14"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    ],
+                    "transition_key": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "protocol"
+                            ]
+                        }
+                    ],
+                    "transitions": [
+                        {
+                            "type": "hexstr",
+                            "value": "0x06",
+                            "mask": null,
+                            "next_state": "parse_tcp"
+                        },
+                        {
+                            "type": "default",
+                            "value": null,
+                            "mask": null,
+                            "next_state": null
+                        }
+                    ]
+                },
+                {
+                    "name": "parse_tcp",
+                    "id": 3,
+                    "parser_ops": [
+                        {
+                            "op": "extract",
+                            "parameters": [
+                                {
+                                    "type": "regular",
+                                    "value": "tcp"
+                                }
+                            ]
+                        }
+                    ],
+                    "transition_key": [],
+                    "transitions": [
+                        {
+                            "type": "default",
+                            "value": null,
+                            "mask": null,
+                            "next_state": null
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "parse_vsets": [],
+    "deparsers": [
+        {
+            "name": "deparser",
+            "id": 0,
+            "order": [
+                "ethernet",
+                "ipv4",
+                "tcp"
+            ]
+        }
+    ],
+    "meter_arrays": [],
+    "actions": [
+        {
+            "name": "process_mismatch_at_learning_SHADOW",
+            "id": 0,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "count",
+                    "parameters": [
+                        {
+                            "type": "counter_array",
+                            "value": "mismatch_counter_SHADOW"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "forward_l2_SHADOW",
+            "id": 1,
+            "runtime_data": [
+                {
+                    "name": "egress_port",
+                    "bitwidth": 9
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "standard_metadata",
+                                "egress_spec"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "init_session_SHADOW",
+            "id": 2,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "session_state_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "session_seq_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "seqNo"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "process_hc_update_SHADOW",
+            "id": 3,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "dstAddr"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0xc0a83865"
+                        }
+                    ]
+                },
+                {
+                    "op": "truncate",
+                    "parameters": [
+                        {
+                            "type": "hexstr",
+                            "value": "0x36"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "update_ip2hc_counter_SHADOW",
+            "id": 4,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "register_read",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_counter_value"
+                            ]
+                        },
+                        {
+                            "type": "register_array",
+                            "value": "ip2hc_counter_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_index"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "add_to_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_counter_value"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "ip2hc_counter_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_index"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_counter_value"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "table_miss_SHADOW",
+            "id": 5,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "count",
+                    "parameters": [
+                        {
+                            "type": "counter_array",
+                            "value": "miss_counter_SHADOW"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_hit_flag"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "tag_packet_abnormal_SHADOW",
+            "id": 6,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "packet_tag"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "prepare_for_session_monitor_SHADOW",
+            "id": 7,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "bit_xor",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_ip"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "srcAddr"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "dstAddr"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "bit_xor",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_port"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "srcPort"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "dstPort"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field_with_hash_based_offset",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        },
+                        {
+                            "type": "calculation",
+                            "value": "session_index_hash"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x100"
+                        }
+                    ]
+                },
+                {
+                    "op": "register_read",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_state"
+                            ]
+                        },
+                        {
+                            "type": "register_array",
+                            "value": "session_state_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "register_read",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_seq"
+                            ]
+                        },
+                        {
+                            "type": "register_array",
+                            "value": "session_seq_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "subtract",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ack_seq_diff"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "ackNo"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_seq"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "process_miss_at_learning_SHADOW",
+            "id": 8,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "clone_ingress_pkt_to_egress",
+                    "parameters": [
+                        {
+                            "type": "hexstr",
+                            "value": "0xfa"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "table_hit_SHADOW",
+            "id": 9,
+            "runtime_data": [
+                {
+                    "name": "index",
+                    "bitwidth": 23
+                },
+                {
+                    "name": "hop_count",
+                    "bitwidth": 8
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_index"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_hop_count"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 1
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_hit_flag"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "complete_session_SHADOW",
+            "id": 10,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "session_state_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "process_cloned_miss_at_learning_SHADOW",
+            "id": 11,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "truncate",
+                    "parameters": [
+                        {
+                            "type": "hexstr",
+                            "value": "0x36"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "forward_back_SHADOW",
+            "id": 12,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "standard_metadata",
+                                "egress_spec"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "standard_metadata",
+                                "ingress_port"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "prepare_src_ip_SHADOW",
+            "id": 13,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "register_read",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "nethcf_state"
+                            ]
+                        },
+                        {
+                            "type": "register_array",
+                            "value": "nethcf_state_SHADOW"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip_for_match"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "srcAddr"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "monitor_session_SHADOW",
+            "id": 14,
+            "runtime_data": [
+                {
+                    "name": "session_monitor_result",
+                    "bitwidth": 3
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_monitor_result"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "process_miss_at_filtering_SHADOW",
+            "id": 15,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "clone_ingress_pkt_to_egress",
+                    "parameters": [
+                        {
+                            "type": "hexstr",
+                            "value": "0xfa"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "packet_tag"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "_drop_SHADOW",
+            "id": 16,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "drop",
+                    "parameters": []
+                }
+            ]
+        },
+        {
+            "name": "reinspect_hc_SHADOW",
+            "id": 17,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "register_read",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_valid_flag"
+                            ]
+                        },
+                        {
+                            "type": "register_array",
+                            "value": "ip2hc_valid_flag_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_index"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field_with_hash_based_offset",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitmap_index"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        },
+                        {
+                            "type": "calculation",
+                            "value": "temporary_bitmap_index_hash"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x10"
+                        }
+                    ]
+                },
+                {
+                    "op": "register_read",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitarray"
+                            ]
+                        },
+                        {
+                            "type": "register_array",
+                            "value": "temporary_bitmap_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitmap_index"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "shift_right",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitarray"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitarray"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "packet_hop_count"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "bit_and",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "dirty_hc_hit_flag"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitarray"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "init_syn_cookie_SHADOW",
+            "id": 18,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "syn"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "ack"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "add",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "ackNo"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "seqNo"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "seqNo"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_mac"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "srcAddr"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "srcAddr"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "dstAddr"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "dstAddr"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_mac"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_ip"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "srcAddr"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "srcAddr"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "dstAddr"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "dstAddr"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_ip"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_port"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "srcPort"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "srcPort"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "dstPort"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "dstPort"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_port"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "session_seq_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "seqNo"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "session_state_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x2"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "packet_tag"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x2"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "prepare_dst_ip_SHADOW",
+            "id": 19,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "register_read",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "nethcf_state"
+                            ]
+                        },
+                        {
+                            "type": "register_array",
+                            "value": "nethcf_state_SHADOW"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip_for_match"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "dstAddr"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "set_report_bitarray_SHADOW",
+            "id": 20,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "report_bitarray_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_index"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "enable_nethcf_SHADOW",
+            "id": 21,
+            "runtime_data": [
+                {
+                    "name": "nethcf_enable_flag",
+                    "bitwidth": 1
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "nethcf_enable_flag"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "process_mismatch_at_filtering_SHADOW",
+            "id": 22,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "count",
+                    "parameters": [
+                        {
+                            "type": "counter_array",
+                            "value": "mismatch_counter_SHADOW"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "packet_tag"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "tag_packet_normal_SHADOW",
+            "id": 23,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "packet_tag"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "complete_syn_cookie_SHADOW",
+            "id": 24,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "ack"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "psh"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "rst"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "add",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "seqNo"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_seq"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "ackNo"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_mac"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "srcAddr"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "srcAddr"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "dstAddr"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "dstAddr"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_mac"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_ip"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "srcAddr"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "srcAddr"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "dstAddr"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "dstAddr"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_ip"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_port"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "srcPort"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "srcPort"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "dstPort"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "tcp",
+                                "dstPort"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "src_dst_port"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "session_state_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x3"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "packet_tag"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x2"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "update_hc_SHADOW",
+            "id": 25,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "ip2hc_valid_flag_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "ip2hc_index"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field_with_hash_based_offset",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitmap_index"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        },
+                        {
+                            "type": "calculation",
+                            "value": "temporary_bitmap_index_hash"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x10"
+                        }
+                    ]
+                },
+                {
+                    "op": "register_read",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitarray"
+                            ]
+                        },
+                        {
+                            "type": "register_array",
+                            "value": "temporary_bitmap_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitmap_index"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "shift_left",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "hop_count_bitarray"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "packet_hop_count"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "bit_or",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitarray"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitarray"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "hop_count_bitarray"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "temporary_bitmap_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitmap_index"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "temporary_bitarray"
+                            ]
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "update_ip2hc_flag"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "clone_ingress_pkt_to_egress",
+                    "parameters": [
+                        {
+                            "type": "hexstr",
+                            "value": "0xfa"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "restart_session_monitor_SHADOW",
+            "id": 26,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "session_state_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "session_index"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "process_cloned_miss_at_filtering_SHADOW",
+            "id": 27,
+            "runtime_data": [],
+            "primitives": []
+        },
+        {
+            "name": "inspect_hc_SHADOW",
+            "id": 28,
+            "runtime_data": [
+                {
+                    "name": "initial_ttl",
+                    "bitwidth": 8
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "subtract",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "meta",
+                                "packet_hop_count"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "ttl"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        }
+    ],
+    "pipelines": [
+        {
+            "name": "ingress",
+            "id": 0,
+            "init_table": "tag_packet_normal_table_SHADOW",
+            "tables": [
+                {
+                    "name": "tag_packet_normal_table_SHADOW",
+                    "id": 0,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "tag_packet_normal_SHADOW"
+                    ],
+                    "next_tables": {
+                        "tag_packet_normal_SHADOW": "nethcf_enable_table_SHADOW"
+                    },
+                    "base_default_next": "nethcf_enable_table_SHADOW"
+                },
+                {
+                    "name": "tag_packet_abnormal_table_SHADOW",
+                    "id": 1,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "tag_packet_abnormal_SHADOW"
+                    ],
+                    "next_tables": {
+                        "tag_packet_abnormal_SHADOW": "_condition_12"
+                    },
+                    "base_default_next": "_condition_12"
+                },
+                {
+                    "name": "nethcf_enable_table_SHADOW",
+                    "id": 2,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 1,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [
+                        {
+                            "match_type": "exact",
+                            "target": [
+                                "standard_metadata",
+                                "ingress_port"
+                            ],
+                            "mask": null
+                        }
+                    ],
+                    "actions": [
+                        "enable_nethcf_SHADOW"
+                    ],
+                    "next_tables": {
+                        "enable_nethcf_SHADOW": "_condition_20000"
+                    },
+                    "base_default_next": "_condition_20000"
+                },
+                {
+                    "name": "nethcf_prepare_table_SHADOW",
+                    "id": 3,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 1,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [
+                        {
+                            "match_type": "exact",
+                            "target": [
+                                "tcp",
+                                "syn"
+                            ],
+                            "mask": null
+                        },
+                        {
+                            "match_type": "exact",
+                            "target": [
+                                "tcp",
+                                "ack"
+                            ],
+                            "mask": null
+                        }
+                    ],
+                    "actions": [
+                        "prepare_src_ip_SHADOW",
+                        "prepare_dst_ip_SHADOW"
+                    ],
+                    "next_tables": {
+                        "prepare_src_ip_SHADOW": "ip2hc_table_SHADOW",
+                        "prepare_dst_ip_SHADOW": "ip2hc_table_SHADOW"
+                    },
+                    "base_default_next": "ip2hc_table_SHADOW"
+                },
+                {
+                    "name": "ip2hc_table_SHADOW",
+                    "id": 4,
+                    "match_type": "ternary",
+                    "type": "simple",
+                    "max_size": 13,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [
+                        {
+                            "match_type": "ternary",
+                            "target": [
+                                "meta",
+                                "ip_for_match"
+                            ],
+                            "mask": null
+                        }
+                    ],
+                    "actions": [
+                        "table_miss_SHADOW",
+                        "table_hit_SHADOW"
+                    ],
+                    "next_tables": {
+                        "table_miss_SHADOW": "_condition_1",
+                        "table_hit_SHADOW": "_condition_1"
+                    },
+                    "base_default_next": "_condition_1"
+                },
+                {
+                    "name": "hc_inspect_table_SHADOW",
+                    "id": 5,
+                    "match_type": "range",
+                    "type": "simple",
+                    "max_size": 8,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [
+                        {
+                            "match_type": "range",
+                            "target": [
+                                "ipv4",
+                                "ttl"
+                            ],
+                            "mask": null
+                        }
+                    ],
+                    "actions": [
+                        "inspect_hc_SHADOW"
+                    ],
+                    "next_tables": {
+                        "inspect_hc_SHADOW": "_condition_2"
+                    },
+                    "base_default_next": "_condition_2"
+                },
+                {
+                    "name": "ip2hc_counter_update_table_SHADOW",
+                    "id": 6,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "update_ip2hc_counter_SHADOW"
+                    ],
+                    "next_tables": {
+                        "update_ip2hc_counter_SHADOW": "_condition_12"
+                    },
+                    "base_default_next": "_condition_12"
+                },
+                {
+                    "name": "session_monitor_prepare_table_SHADOW",
+                    "id": 7,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "prepare_for_session_monitor_SHADOW"
+                    ],
+                    "next_tables": {
+                        "prepare_for_session_monitor_SHADOW": "session_monitor_table_SHADOW"
+                    },
+                    "base_default_next": "session_monitor_table_SHADOW"
+                },
+                {
+                    "name": "session_monitor_table_SHADOW",
+                    "id": 8,
+                    "match_type": "ternary",
+                    "type": "simple",
+                    "max_size": 10,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [
+                        {
+                            "match_type": "exact",
+                            "target": [
+                                "tcp",
+                                "syn"
+                            ],
+                            "mask": null
+                        },
+                        {
+                            "match_type": "exact",
+                            "target": [
+                                "tcp",
+                                "ack"
+                            ],
+                            "mask": null
+                        },
+                        {
+                            "match_type": "ternary",
+                            "target": [
+                                "meta",
+                                "ack_seq_diff"
+                            ],
+                            "mask": null
+                        },
+                        {
+                            "match_type": "ternary",
+                            "target": [
+                                "meta",
+                                "session_state"
+                            ],
+                            "mask": null
+                        }
+                    ],
+                    "actions": [
+                        "monitor_session_SHADOW"
+                    ],
+                    "next_tables": {
+                        "monitor_session_SHADOW": "_condition_3"
+                    },
+                    "base_default_next": "_condition_3"
+                },
+                {
+                    "name": "syn_cookie_init_table_SHADOW",
+                    "id": 9,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "init_syn_cookie_SHADOW"
+                    ],
+                    "next_tables": {
+                        "init_syn_cookie_SHADOW": "_condition_12"
+                    },
+                    "base_default_next": "_condition_12"
+                },
+                {
+                    "name": "session_init_table_SHADOW",
+                    "id": 10,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "init_session_SHADOW"
+                    ],
+                    "next_tables": {
+                        "init_session_SHADOW": "_condition_12"
+                    },
+                    "base_default_next": "_condition_12"
+                },
+                {
+                    "name": "session_complete_table_SHADOW",
+                    "id": 11,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "complete_session_SHADOW"
+                    ],
+                    "next_tables": {
+                        "complete_session_SHADOW": "hc_update_table_SHADOW"
+                    },
+                    "base_default_next": "hc_update_table_SHADOW"
+                },
+                {
+                    "name": "hc_update_table_SHADOW",
+                    "id": 12,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "update_hc_SHADOW"
+                    ],
+                    "next_tables": {
+                        "update_hc_SHADOW": "_condition_12"
+                    },
+                    "base_default_next": "_condition_12"
+                },
+                {
+                    "name": "syn_cookie_complete_table_SHADOW",
+                    "id": 13,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "complete_syn_cookie_SHADOW"
+                    ],
+                    "next_tables": {
+                        "complete_syn_cookie_SHADOW": "_condition_12"
+                    },
+                    "base_default_next": "_condition_12"
+                },
+                {
+                    "name": "session_monitor_restart_table_SHADOW",
+                    "id": 14,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "restart_session_monitor_SHADOW"
+                    ],
+                    "next_tables": {
+                        "restart_session_monitor_SHADOW": "_condition_12"
+                    },
+                    "base_default_next": "_condition_12"
+                },
+                {
+                    "name": "hc_reinspect_table_SHADOW",
+                    "id": 15,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "reinspect_hc_SHADOW"
+                    ],
+                    "next_tables": {
+                        "reinspect_hc_SHADOW": "_condition_10"
+                    },
+                    "base_default_next": "_condition_10"
+                },
+                {
+                    "name": "report_bitarray_set_table_SHADOW",
+                    "id": 16,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "set_report_bitarray_SHADOW"
+                    ],
+                    "next_tables": {
+                        "set_report_bitarray_SHADOW": "_condition_20014"
+                    },
+                    "base_default_next": "_condition_20014"
+                },
+                {
+                    "name": "process_mismatch_at_learning_table_SHADOW",
+                    "id": 17,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "process_mismatch_at_learning_SHADOW"
+                    ],
+                    "next_tables": {
+                        "process_mismatch_at_learning_SHADOW": "_condition_12"
+                    },
+                    "base_default_next": "_condition_12"
+                },
+                {
+                    "name": "process_mismatch_at_filtering_table_SHADOW",
+                    "id": 18,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "process_mismatch_at_filtering_SHADOW"
+                    ],
+                    "next_tables": {
+                        "process_mismatch_at_filtering_SHADOW": "_condition_12"
+                    },
+                    "base_default_next": "_condition_12"
+                },
+                {
+                    "name": "process_miss_at_learning_table_SHADOW",
+                    "id": 19,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "process_miss_at_learning_SHADOW"
+                    ],
+                    "next_tables": {
+                        "process_miss_at_learning_SHADOW": "_condition_20014"
+                    },
+                    "base_default_next": "_condition_20014"
+                },
+                {
+                    "name": "process_miss_at_filtering_table_SHADOW",
+                    "id": 20,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "process_miss_at_filtering_SHADOW"
+                    ],
+                    "next_tables": {
+                        "process_miss_at_filtering_SHADOW": "_condition_20014"
+                    },
+                    "base_default_next": "_condition_20014"
+                },
+                {
+                    "name": "l2_forward_table_SHADOW",
+                    "id": 21,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 10,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [
+                        {
+                            "match_type": "exact",
+                            "target": [
+                                "standard_metadata",
+                                "ingress_port"
+                            ],
+                            "mask": null
+                        }
+                    ],
+                    "actions": [
+                        "_drop_SHADOW",
+                        "forward_l2_SHADOW"
+                    ],
+                    "next_tables": {
+                        "_drop_SHADOW": null,
+                        "forward_l2_SHADOW": null
+                    },
+                    "base_default_next": null
+                },
+                {
+                    "name": "drop_table_SHADOW",
+                    "id": 22,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "_drop_SHADOW"
+                    ],
+                    "next_tables": {
+                        "_drop_SHADOW": null
+                    },
+                    "base_default_next": null
+                },
+                {
+                    "name": "back_forward_table_SHADOW",
+                    "id": 23,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "forward_back_SHADOW"
+                    ],
+                    "next_tables": {
+                        "forward_back_SHADOW": null
+                    },
+                    "base_default_next": null
+                }
+            ],
+            "action_profiles": [],
+            "conditionals": [
+                {
+                    "name": "_condition_20000",
+                    "id": 0,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "nethcf_enable_flag"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x1"
+                            }
+                        }
+                    },
+                    "true_next": "nethcf_prepare_table_SHADOW",
+                    "false_next": "_condition_20014"
+                },
+                {
+                    "name": "_condition_1",
+                    "id": 1,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "ip2hc_hit_flag"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x1"
+                            }
+                        }
+                    },
+                    "true_next": "hc_inspect_table_SHADOW",
+                    "false_next": "_condition_13"
+                },
+                {
+                    "name": "_condition_2",
+                    "id": 2,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "ip2hc_hop_count"
+                                ]
+                            },
+                            "right": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "packet_hop_count"
+                                ]
+                            }
+                        }
+                    },
+                    "true_next": "ip2hc_counter_update_table_SHADOW",
+                    "false_next": "session_monitor_prepare_table_SHADOW"
+                },
+                {
+                    "name": "_condition_3",
+                    "id": 3,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "session_monitor_result"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x1"
+                            }
+                        }
+                    },
+                    "true_next": "_condition_4",
+                    "false_next": "_condition_5"
+                },
+                {
+                    "name": "_condition_4",
+                    "id": 4,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "nethcf_state"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x1"
+                            }
+                        }
+                    },
+                    "true_next": "syn_cookie_init_table_SHADOW",
+                    "false_next": "_condition_12"
+                },
+                {
+                    "name": "_condition_5",
+                    "id": 5,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "session_monitor_result"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x2"
+                            }
+                        }
+                    },
+                    "true_next": "session_init_table_SHADOW",
+                    "false_next": "_condition_6"
+                },
+                {
+                    "name": "_condition_6",
+                    "id": 6,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "session_monitor_result"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x3"
+                            }
+                        }
+                    },
+                    "true_next": "session_complete_table_SHADOW",
+                    "false_next": "_condition_7"
+                },
+                {
+                    "name": "_condition_7",
+                    "id": 7,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "session_monitor_result"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x4"
+                            }
+                        }
+                    },
+                    "true_next": "syn_cookie_complete_table_SHADOW",
+                    "false_next": "_condition_8"
+                },
+                {
+                    "name": "_condition_8",
+                    "id": 8,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "session_monitor_result"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x5"
+                            }
+                        }
+                    },
+                    "true_next": "session_monitor_restart_table_SHADOW",
+                    "false_next": "_condition_9"
+                },
+                {
+                    "name": "_condition_9",
+                    "id": 9,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "session_monitor_result"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x6"
+                            }
+                        }
+                    },
+                    "true_next": "tag_packet_abnormal_table_SHADOW",
+                    "false_next": "hc_reinspect_table_SHADOW"
+                },
+                {
+                    "name": "_condition_10",
+                    "id": 10,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "expression",
+                                "value": {
+                                    "op": "&",
+                                    "left": {
+                                        "type": "field",
+                                        "value": [
+                                            "meta",
+                                            "ip2hc_valid_flag"
+                                        ]
+                                    },
+                                    "right": {
+                                        "type": "field",
+                                        "value": [
+                                            "meta",
+                                            "dirty_hc_hit_flag"
+                                        ]
+                                    }
+                                }
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x1"
+                            }
+                        }
+                    },
+                    "true_next": "ip2hc_counter_update_table_SHADOW",
+                    "false_next": "_condition_11"
+                },
+                {
+                    "name": "_condition_11",
+                    "id": 11,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "nethcf_state"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x0"
+                            }
+                        }
+                    },
+                    "true_next": "process_mismatch_at_learning_table_SHADOW",
+                    "false_next": "process_mismatch_at_filtering_table_SHADOW"
+                },
+                {
+                    "name": "_condition_12",
+                    "id": 12,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": ">",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "ip2hc_counter_value"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0xa"
+                            }
+                        }
+                    },
+                    "true_next": "report_bitarray_set_table_SHADOW",
+                    "false_next": "_condition_20014"
+                },
+                {
+                    "name": "_condition_13",
+                    "id": 13,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "nethcf_state"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x0"
+                            }
+                        }
+                    },
+                    "true_next": "process_miss_at_learning_table_SHADOW",
+                    "false_next": "process_miss_at_filtering_table_SHADOW"
+                },
+                {
+                    "name": "_condition_20014",
+                    "id": 14,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "packet_tag"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x0"
+                            }
+                        }
+                    },
+                    "true_next": "l2_forward_table_SHADOW",
+                    "false_next": "_condition_15"
+                },
+                {
+                    "name": "_condition_15",
+                    "id": 15,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "packet_tag"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x1"
+                            }
+                        }
+                    },
+                    "true_next": "drop_table_SHADOW",
+                    "false_next": "back_forward_table_SHADOW"
+                }
+            ]
+        },
+        {
+            "name": "egress",
+            "id": 1,
+            "init_table": "_condition_20016",
+            "tables": [
+                {
+                    "name": "process_hc_update_table_SHADOW",
+                    "id": 24,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "process_hc_update_SHADOW"
+                    ],
+                    "next_tables": {
+                        "process_hc_update_SHADOW": null
+                    },
+                    "base_default_next": null
+                },
+                {
+                    "name": "process_cloned_miss_at_learning_table_SHADOW",
+                    "id": 25,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "process_cloned_miss_at_learning_SHADOW"
+                    ],
+                    "next_tables": {
+                        "process_cloned_miss_at_learning_SHADOW": null
+                    },
+                    "base_default_next": null
+                },
+                {
+                    "name": "process_cloned_miss_at_filtering_table_SHADOW",
+                    "id": 26,
+                    "match_type": "exact",
+                    "type": "simple",
+                    "max_size": 16384,
+                    "with_counters": false,
+                    "direct_meters": null,
+                    "support_timeout": false,
+                    "key": [],
+                    "actions": [
+                        "process_cloned_miss_at_filtering_SHADOW"
+                    ],
+                    "next_tables": {
+                        "process_cloned_miss_at_filtering_SHADOW": null
+                    },
+                    "base_default_next": null
+                }
+            ],
+            "action_profiles": [],
+            "conditionals": [
+                {
+                    "name": "_condition_20016",
+                    "id": 16,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "standard_metadata",
+                                    "egress_port"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x3"
+                            }
+                        }
+                    },
+                    "true_next": "_condition_17",
+                    "false_next": null
+                },
+                {
+                    "name": "_condition_17",
+                    "id": 17,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "update_ip2hc_flag"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x1"
+                            }
+                        }
+                    },
+                    "true_next": "process_hc_update_table_SHADOW",
+                    "false_next": "_condition_18"
+                },
+                {
+                    "name": "_condition_18",
+                    "id": 18,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "nethcf_state"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x0"
+                            }
+                        }
+                    },
+                    "true_next": "process_cloned_miss_at_learning_table_SHADOW",
+                    "false_next": "_condition_19"
+                },
+                {
+                    "name": "_condition_19",
+                    "id": 19,
+                    "expression": {
+                        "type": "expression",
+                        "value": {
+                            "op": "==",
+                            "left": {
+                                "type": "field",
+                                "value": [
+                                    "meta",
+                                    "nethcf_state"
+                                ]
+                            },
+                            "right": {
+                                "type": "hexstr",
+                                "value": "0x1"
+                            }
+                        }
+                    },
+                    "true_next": "process_cloned_miss_at_filtering_table_SHADOW",
+                    "false_next": null
+                }
+            ]
+        }
+    ],
+    "calculations": [
+        {
+            "name": "ipv4_checksum",
+            "id": 0,
+            "input": [
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "version"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "ihl"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "diffserv"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "totalLen"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "identification"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "flags"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "fragOffset"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "ttl"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "protocol"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "srcAddr"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "dstAddr"
+                    ]
+                }
+            ],
+            "algo": "csum16"
+        },
+        {
+            "name": "tcp_checksum",
+            "id": 1,
+            "input": [
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "srcAddr"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "dstAddr"
+                    ]
+                },
+                {
+                    "type": "hexstr",
+                    "value": "0x00",
+                    "bitwidth": 8
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "protocol"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "routing_metadata",
+                        "tcpLength"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "srcPort"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "dstPort"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "seqNo"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "ackNo"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "dataOffset"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "res"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "ecn"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "urg"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "ack"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "psh"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "rst"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "syn"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "fin"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "window"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "tcp",
+                        "urgentPtr"
+                    ]
+                },
+                {
+                    "type": "payload"
+                }
+            ],
+            "algo": "csum16"
+        },
+        {
+            "name": "session_index_hash",
+            "id": 2,
+            "input": [
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "src_dst_ip"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "protocol"
+                    ]
+                }
+            ],
+            "algo": "crc16"
+        },
+        {
+            "name": "temporary_bitmap_index_hash",
+            "id": 3,
+            "input": [
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "ip_for_match"
+                    ]
+                }
+            ],
+            "algo": "crc16"
+        }
+    ],
+    "checksums": [
+        {
+            "name": "ipv4.hdrChecksum|ipv4_checksum",
+            "id": 0,
+            "target": [
+                "ipv4",
+                "hdrChecksum"
+            ],
+            "type": "generic",
+            "calculation": "ipv4_checksum",
+            "if_cond": null
+        },
+        {
+            "name": "tcp.checksum|tcp_checksum",
+            "id": 1,
+            "target": [
+                "tcp",
+                "checksum"
+            ],
+            "type": "generic",
+            "calculation": "tcp_checksum",
+            "if_cond": null
+        }
+    ],
+    "learn_lists": [],
+    "field_lists": [
+        {
+            "id": 1,
+            "name": "meta_data_for_clone",
+            "elements": [
+                {
+                    "type": "field",
+                    "value": [
+                        "standard_metadata",
+                        "ingress_port"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "standard_metadata",
+                        "packet_length"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "standard_metadata",
+                        "egress_spec"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "standard_metadata",
+                        "egress_port"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "standard_metadata",
+                        "egress_instance"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "standard_metadata",
+                        "instance_type"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "standard_metadata",
+                        "clone_spec"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "standard_metadata",
+                        "_padding"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "nethcf_enable_flag"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "nethcf_state"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "packet_hop_count"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "ip_for_match"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "ip2hc_index"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "ip2hc_hit_flag"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "ip2hc_hop_count"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "ip2hc_counter_value"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "ip2hc_valid_flag"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "dirty_hc_hit_flag"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "temporary_bitmap_index"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "temporary_bitarray"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "hop_count_bitarray"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "update_ip2hc_flag"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "session_index"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "session_state"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "session_seq"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "session_monitor_result"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "ack_seq_diff"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "packet_tag"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "src_dst_ip"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "src_dst_port"
+                    ]
+                },
+                {
+                    "type": "field",
+                    "value": [
+                        "meta",
+                        "src_dst_mac"
+                    ]
+                }
+            ]
+        }
+    ],
+    "counter_arrays": [
+        {
+            "name": "mismatch_counter_SHADOW",
+            "id": 0,
+            "is_direct": false,
+            "size": 1
+        },
+        {
+            "name": "miss_counter_SHADOW",
+            "id": 1,
+            "is_direct": false,
+            "size": 1
+        }
+    ],
+    "register_arrays": [
+        {
+            "name": "nethcf_state_SHADOW",
+            "id": 0,
+            "bitwidth": 1,
+            "size": 1
+        },
+        {
+            "name": "ip2hc_counter_SHADOW",
+            "id": 1,
+            "bitwidth": 8,
+            "size": 13
+        },
+        {
+            "name": "ip2hc_valid_flag_SHADOW",
+            "id": 2,
+            "bitwidth": 1,
+            "size": 13
+        },
+        {
+            "name": "temporary_bitmap_SHADOW",
+            "id": 3,
+            "bitwidth": 32,
+            "size": 16
+        },
+        {
+            "name": "report_bitarray_SHADOW",
+            "id": 4,
+            "bitwidth": 1,
+            "size": 13
+        },
+        {
+            "name": "session_state_SHADOW",
+            "id": 5,
+            "bitwidth": 2,
+            "size": 256
+        },
+        {
+            "name": "session_seq_SHADOW",
+            "id": 6,
+            "bitwidth": 32,
+            "size": 256
+        }
+    ],
+    "force_arith": [
+        [
+            "standard_metadata",
+            "ingress_port"
+        ],
+        [
+            "standard_metadata",
+            "packet_length"
+        ],
+        [
+            "standard_metadata",
+            "egress_spec"
+        ],
+        [
+            "standard_metadata",
+            "egress_port"
+        ],
+        [
+            "standard_metadata",
+            "egress_instance"
+        ],
+        [
+            "standard_metadata",
+            "instance_type"
+        ],
+        [
+            "standard_metadata",
+            "clone_spec"
+        ],
+        [
+            "standard_metadata",
+            "_padding"
+        ]
+    ]
+}

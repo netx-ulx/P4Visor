@@ -28,32 +28,32 @@ The script must be used with the following input arguments:
 [--shadow_source *path_to_p4_program*]
 ```
 
--The second program to be added to the merged program:
+- The second program to be added to the merged program:
 ```
 [--real_source *path_to_p4_program*]
 ```
 
--The path of any additional programs to be merged (separated by space):
+- The path of any additional programs to be merged (separated by space):
 ```
 [--l *path_to_p4_program* ... *path_to_p4_program*]
 ```
 
--The name of the merged JSON file:
+- The name of the merged JSON file:
 ```
 [--json_mg *path_to_dir_with_name.json*]
 ```
 
--The option to generate a visual representation of the graphs:
+- The option to generate a visual representation of the graphs:
 ```
 [--gen-fig]
 ```
 
--The directory where the output files will be stored:
+- The directory where the output files will be stored:
 ```
 [--gen_dir *path_to_dir*]
 ```
 
--The mode of operation (must always be Diff-Testing):
+- The mode of operation (must always be Diff-Testing):
 ```
 [--Diff-testing]
 ```
@@ -86,21 +86,21 @@ In order to evaluate our work, we merged three different combinations of P4 prog
 
 To recreate these tests, the following commands must be executed:
 
--Test A:
+- Test A:
 ```
 python ShadowP4c-bmv2.py --real_source   tests/testAll/portKnockFirewall.p4  
 --shadow_source tests/testAll/flowlet.p4 --json_mg tests/testAll/merged.json 
 --l tests/testAll/heavy_hitter.p4  --gen-fig --gen_dir tests/testAll --Diff-testing
 ```
 
--Test B:
+- Test B:
 ```
 python ShadowP4c-bmv2.py --real_source   tests/testAll/mc_nat.p4  --shadow_source tests/testAll/ecmp.p4 
 --json_mg tests/testAll/merged.json --l tests/testAll/simple_router.p4 tests/testAll/timestamp.p4 
 --gen-fig --gen_dir tests/testAll --Diff-testing
 ```
 
--Test C:
+- Test C:
 ```
 python ShadowP4c-bmv2.py --real_source   tests/testAll/mtag-edge.p4  
 --shadow_source tests/testAll/source_routing.p4 --json_mg tests/testAll/merged.json 

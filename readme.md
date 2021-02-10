@@ -102,7 +102,9 @@ python ShadowP4c-bmv2.py --real_source   tests/testAll/mc_nat.p4  --shadow_sourc
 
 -Test C:
 ```
-python ShadowP4c-bmv2.py --real_source   tests/testAll/mtag-edge.p4  --shadow_source tests/testAll/source_routing.p4 --json_mg tests/testAll/merged.json --l tests/testAll/simple_router_with_arp.p4  --gen-fig --gen_dir tests/testAll --Diff-testing
+python ShadowP4c-bmv2.py --real_source   tests/testAll/mtag-edge.p4  
+--shadow_source tests/testAll/source_routing.p4 --json_mg tests/testAll/merged.json 
+--l tests/testAll/simple_router_with_arp.p4  --gen-fig --gen_dir tests/testAll --Diff-testing
 ```
 
 

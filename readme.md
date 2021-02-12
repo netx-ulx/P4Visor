@@ -77,9 +77,9 @@ python ShadowP4c-bmv2.py --real_source   example/portKnockFirewall.p4
 The merged JSON file will be placed in the `example` folder, under the name `merged.json`.
 
 
-## Reproducing the results of the MSc. thesis "Code Merging for Programmable Data Plane Virtualization", carried out by Duarte Sequeira at the Faculty of Sciences of the University of Lisbon in 2020.
+## 3. Reproducing the results of "Code Merging for Programmable Data Plane Virtualization".
 
-In order to evaluate that work, three different sets of P4 programs, showing different degrees of similarity, were merged. The programs in those sets are all available under the folder 'tests/testAll/'.
+P4Visor++ has been developed within the framework of an MSc. thesis carried out by Duarte Sequeira at the Faculty of Sciences of the University of Lisbon in 2020. In order to evaluate that work, three different sets of P4 programs, showing different degrees of similarity, were merged. The programs in those sets are all available under the folder 'tests/testAll/'.
 
 To recreate those tests, the following commands must be executed:
 

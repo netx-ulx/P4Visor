@@ -8,7 +8,7 @@ The compiled JSON file can then be installed on the Bmv2 P4-capable software swi
 
 ## 1. Requirements
 
-In order to merge P4 programs, the user must first install the following dependencies:
+In order to merge P4 programs and to test the result with the following instructions, the user must first install the following dependencies:
 
 ```
 - [p4c-bm](https://github.com/p4lang/p4c-bm)
@@ -33,12 +33,12 @@ The script must be used with the following input arguments:
 [--real_source *path_to_p4_program*]
 ```
 
-- The path of any additional programs to be merged (separated by space):
+- The path of any additional program to be merged (separated by spaces, if more than one):
 ```
 [--l *path_to_p4_program* ... *path_to_p4_program*]
 ```
 
-- The name of the merged JSON file:
+- The name of the output JSON file:
 ```
 [--json_mg *path_to_dir_with_name.json*]
 ```
@@ -60,16 +60,13 @@ The script must be used with the following input arguments:
 
 
 This will generate the merged JSON file and the visual representation of the graphs and store them in the directory specified in `--gen_dir`.
-Additionally, a file named `evalFinal.txt` will be created and stored at the project's root directory, containing usefull information regarding the amount of resources used by the merged program.
+Additionally, a file named `evalFinal.txt` will be created and stored at the project's root directory, containing useful information regarding the amount of resources used by the parser graph in the merged program.
 
 
 # Merge Example
 
-To illustrate how the merging of multiple programs is achieved, we provide the following example.
-
-In order to merge three P4 programs (flowlet.p4, portKnockFirewall.p4, heavy_hitter.p4), we first create a directory on the project's root, called `example`.
-Then, we place our three programs inside that directory.
-To merge them, we use the following command in a terminal opened at the level of the project's root directory:
+To illustrate how the merging of multiple programs is achieved, we provide the following example which merges three P4 programs (flowlet.p4, portKnockFirewall.p4, heavy_hitter.p4).
+We first create a directory on the project's root, called `example`, wherein we place our three programs. Afterwards, to merge the programs, we use the following command in a terminal opened at the level of the project's root directory:
 
 ```
 python ShadowP4c-bmv2.py --real_source   example/portKnockFirewall.p4  
@@ -80,11 +77,11 @@ python ShadowP4c-bmv2.py --real_source   example/portKnockFirewall.p4
 The merged JSON file will be placed in the `example` folder, under the name `merged.json`.
 
 
-## Recreating our results
+## Reproducing the results of the MSc. thesis "Code Merging for Programmable Data Plane Virtualization", carried out by Duarte Sequeira at the Faculty of Sciences of the University of Lisbon in 2020.
 
-In order to evaluate our work, we merged three different combinations of P4 programs, with different degrees of similarity.
+In order to evaluate that work, three different sets of P4 programs, showing different degrees of similarity, were merged. The programs in those sets are all available under the folder 'tests/testAll/'.
 
-To recreate these tests, the following commands must be executed:
+To recreate those tests, the following commands must be executed:
 
 - Test A:
 ```
@@ -108,7 +105,7 @@ python ShadowP4c-bmv2.py --real_source   tests/testAll/mtag-edge.p4
 ```
 
 
-Additionally, the merge sequence for the ten programs in our set is the following:
+Additionally, the merge sequence for all the ten programs in those sets is the following:
 ```
 python ShadowP4c-bmv2.py --real_source   tests/testAll/simple_router_with_arp.p4  
 --shadow_source tests/testAll/source_routing.p4  --json_mg tests/testAll/merged.json 

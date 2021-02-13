@@ -114,4 +114,8 @@ tests/testAll/heavy_hitter.p4 tests/testAll/simple_router.p4 tests/testAll/ecmp.
 tests/testAll/mc_nat.p4 tests/testAll/flowlet.p4  --gen-fig --gen_dir tests/testAll --Diff-testing
 ```
 
+# Contacts
+
+If you have any questions, you can reach me (Duarte Sequeira) at:
+      email - dudaxsek97@gmail.com
 

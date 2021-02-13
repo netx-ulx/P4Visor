@@ -1,4 +1,4 @@
-2
+4
 ethernet 0 0
 vlan 1 3
 mtag 2 4

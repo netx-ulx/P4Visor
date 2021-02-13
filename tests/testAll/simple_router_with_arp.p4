@@ -220,17 +220,12 @@ table send_arp_to_cpu {
 }
 
 control ingress {
-    if (valid(cpu_header)) {
-        apply(decap_cpu_header);
-    } else {
-        if (valid(arp)) {
-            apply(send_arp_to_cpu);
-        }
-        if(valid(ipv4) and ipv4.ttl > 0) {
-            apply(ipv4_lpm);
-            apply(forward);
-        }
-    }
+
+    apply(decap_cpu_header);
+    apply(send_arp_to_cpu);
+    apply(ipv4_lpm);
+    apply(forward);
+       
 }
 
 control egress {

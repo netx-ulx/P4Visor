@@ -416,7 +416,7 @@ def main():
                 dot.export_table_dependency_graph(h_r, basename, gen_dir, show_conds = True, no_dot=True)
 
 	#Create file with preliminar ids for h_r states
-	h_r_translation_name = args.real_source.split('/')[2]
+	h_r_translation_name = args.real_source.split('/')[-1]
 	h_r_translation_name = h_r_translation_name[:len( h_r_translation_name)-3]
 	h_r_translation_name = 'evaluation/translations/' + h_r_translation_name + '_translation.txt'
 	
@@ -465,7 +465,7 @@ def main():
 			hlir_list.append(hlir)
   			
 			#Create _translation file
-			h_diff_translation_name = p_name.split('/')[2]
+			h_diff_translation_name = p_name.split('/')[-1]
 			h_diff_translation_name = h_diff_translation_name[:len( h_diff_translation_name)-3]
 			h_diff_translation_name = 'evaluation/translations/' + h_diff_translation_name + '_translation.txt'
 			h_diff_f = open(h_diff_translation_name, "w") 
@@ -529,7 +529,7 @@ def main():
                                                     show_conds = True, no_dot=True)
             # return
 	    #Create file with preliminar ids for h_r states
-	    h_s_translation_name = args.shadow_source.split('/')[2]
+	    h_s_translation_name = args.shadow_source.split('/')[-1]
 	    h_s_translation_name = h_s_translation_name[:len( h_s_translation_name)-3]
 	    h_s_translation_name = 'evaluation/translations/' + h_s_translation_name + '_translation.txt'
 	
@@ -862,7 +862,7 @@ def main():
 		if args.list:
 			for hlir in hlir_list:
            			p_name = hlir.source_files[0]
-				h_diff_translation_name = p_name.split('/')[2]
+				h_diff_translation_name = p_name.split('/')[-1]
 				h_diff_translation_name = h_diff_translation_name[:len( h_diff_translation_name)-3]
 				h_diff_translation_name = 'evaluation/translations/' + h_diff_translation_name + '_translation.txt'
 				diff_file = open(h_diff_translation_name, 'r')
@@ -884,10 +884,10 @@ def main():
 				new_diff_file.close()
 		
 		tmp = h_r.source_files[0]
-		h_r_name = tmp.split('/')[2]
+		h_r_name = tmp.split('/')[-1]
 
 		tmp = h_s.source_files[0]
-		h_s_name = tmp.split('/')[2]
+		h_s_name = tmp.split('/')[-1]
 
 		f = open("evalFinal.txt", "w")
     		f.write('BEFORE THE MERGE\n')	
@@ -896,7 +896,7 @@ def main():
     		f.write('Number of headers of program '+ h_r_name + ': ' + str(headers_r) + '\n')
 		for hlir in hlir_list:
 			tmp = hlir.source_files[0]
-			hlir_name = tmp.split('/')[2]
+			hlir_name = tmp.split('/')[-1]
 			f.write('Number of headers of program '+ hlir_name + ': ' + str(hlir_dict[hlir][5]) + '\n')
 
             	f.write('----------------STATES--------------------- \n')
@@ -904,7 +904,7 @@ def main():
 	        f.write('Number of states of program '+ h_r_name + ': ' + str(states_r) + '\n')
 		for hlir in hlir_list:
 			tmp = hlir.source_files[0]
-			hlir_name = tmp.split('/')[2]
+			hlir_name = tmp.split('/')[-1]
 			f.write('Number of states of program '+ hlir_name + ': ' + str(hlir_dict[hlir][4]) + '\n')
 
 	        f.write('--------------TRANSITIONS------------------ \n')
@@ -912,7 +912,7 @@ def main():
 	        f.write('Number of transitions of program '+ h_r_name + ': ' + str(transitions_r) + '\n')
 		for hlir in hlir_list:
 			tmp = hlir.source_files[0]
-			hlir_name = tmp.split('/')[2]
+			hlir_name = tmp.split('/')[-1]
 			f.write('Number of transitions of program '+ hlir_name + ': ' + str(hlir_dict[hlir][3]) + '\n')
 
 		f.write('--------------SELECT SIZE------------------ \n')
@@ -920,7 +920,7 @@ def main():
 		f.write('Max, min and average select width of program '+ h_r_name + ': ' + str(select_max_r) + ' | ' + str(select_min_r)+ ' | ' + str(total_r) +'\n')
 		for hlir in hlir_list:
 			tmp = hlir.source_files[0]
-			hlir_name = tmp.split('/')[2]
+			hlir_name = tmp.split('/')[-1]
 			f.write('Max, min and average select width of program '+ hlir_name + ': ' + str(hlir_dict[hlir][1]) + ' | ' + str(hlir_dict[hlir][2])+ ' | ' + str(hlir_dict[hlir][0]) +'\n')
 
 		f.write('\n \n\n\n')
@@ -969,7 +969,7 @@ def main():
                 if OPT_gen_graph_table:
                     dot.export_table_graph(h_mg, basename, gen_dir, predecessors=False, no_dot=True)
                 if OPT_gen_graph_deps:
-                    dot.export_table_dependency_graph(h_s, basename, gen_dir,
+                    dot.export_table_dependency_graph(h_mg, basename, gen_dir,
                                                     show_conds = True, no_dot=True)
 
     if args.pd:

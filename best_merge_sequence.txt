@@ -1,2 +1,2 @@
-('tests/testAll/simple_router_with_arp.p4', 'tests/testAll/source_routing.p4', 'tests/testAll/mtag-edge.p4')
-21
+('tests/testAll/heavy_hitter.p4', 'tests/testAll/simple_router.p4', 'tests/testAll/mtag-edge.p4', 'tests/testAll/flowlet.p4', 'tests/testAll/portKnockFirewall.p4')
+14

@@ -1,5 +1,5 @@
-2
-parse_ethernet 0 5
-parse_ipv4 1 7
-parse_arp 2 6
-parse_cpu_header 3 0
+15
+parse_ethernet 0
+parse_ipv4 1
+parse_arp 2
+parse_cpu_header 3

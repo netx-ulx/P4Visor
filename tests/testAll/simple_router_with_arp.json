@@ -400,16 +400,72 @@
             "order": [
                 "cpu_header",
                 "ethernet",
-                "ipv4",
-                "arp"
+                "arp",
+                "ipv4"
             ]
         }
     ],
     "meter_arrays": [],
     "actions": [
         {
-            "name": "do_send_to_cpu",
+            "name": "rewrite_mac",
             "id": 0,
+            "runtime_data": [
+                {
+                    "name": "smac",
+                    "bitwidth": 48
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "srcAddr"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "set_dmac",
+            "id": 1,
+            "runtime_data": [
+                {
+                    "name": "dmac",
+                    "bitwidth": 48
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "dstAddr"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "do_send_to_cpu",
+            "id": 2,
             "runtime_data": [
                 {
                     "name": "reason",
@@ -484,8 +540,19 @@
             ]
         },
         {
+            "name": "_drop",
+            "id": 3,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "drop",
+                    "parameters": []
+                }
+            ]
+        },
+        {
             "name": "do_decap_cpu_header",
-            "id": 1,
+            "id": 4,
             "runtime_data": [],
             "primitives": [
                 {
@@ -520,7 +587,7 @@
         },
         {
             "name": "set_nhop",
-            "id": 2,
+            "id": 5,
             "runtime_data": [
                 {
                     "name": "nhop_ipv4",
@@ -581,80 +648,13 @@
                     ]
                 }
             ]
-        },
-        {
-            "name": "_drop",
-            "id": 3,
-            "runtime_data": [],
-            "primitives": [
-                {
-                    "op": "drop",
-                    "parameters": []
-                }
-            ]
-        },
-        {
-            "name": "rewrite_mac",
-            "id": 4,
-            "runtime_data": [
-                {
-                    "name": "smac",
-                    "bitwidth": 48
-                }
-            ],
-            "primitives": [
-                {
-                    "op": "modify_field",
-                    "parameters": [
-                        {
-                            "type": "field",
-                            "value": [
-                                "ethernet",
-                                "srcAddr"
-                            ]
-                        },
-                        {
-                            "type": "runtime_data",
-                            "value": 0
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "set_dmac",
-            "id": 5,
-            "runtime_data": [
-                {
-                    "name": "dmac",
-                    "bitwidth": 48
-                }
-            ],
-            "primitives": [
-                {
-                    "op": "modify_field",
-                    "parameters": [
-                        {
-                            "type": "field",
-                            "value": [
-                                "ethernet",
-                                "dstAddr"
-                            ]
-                        },
-                        {
-                            "type": "runtime_data",
-                            "value": 0
-                        }
-                    ]
-                }
-            ]
         }
     ],
     "pipelines": [
         {
             "name": "ingress",
             "id": 0,
-            "init_table": "_condition_10000",
+            "init_table": "decap_cpu_header",
             "tables": [
                 {
                     "name": "ipv4_lpm",
@@ -730,9 +730,9 @@
                         "do_decap_cpu_header"
                     ],
                     "next_tables": {
-                        "do_decap_cpu_header": null
+                        "do_decap_cpu_header": "send_arp_to_cpu"
                     },
-                    "base_default_next": null
+                    "base_default_next": "send_arp_to_cpu"
                 },
                 {
                     "name": "send_arp_to_cpu",
@@ -748,93 +748,18 @@
                         "do_send_to_cpu"
                     ],
                     "next_tables": {
-                        "do_send_to_cpu": null
+                        "do_send_to_cpu": "ipv4_lpm"
                     },
-                    "base_default_next": "_condition_2"
+                    "base_default_next": "ipv4_lpm"
                 }
             ],
             "action_profiles": [],
-            "conditionals": [
-                {
-                    "name": "_condition_10000",
-                    "id": 0,
-                    "expression": {
-                        "type": "expression",
-                        "value": {
-                            "op": "valid",
-                            "left": null,
-                            "right": {
-                                "type": "header",
-                                "value": "cpu_header"
-                            }
-                        }
-                    },
-                    "true_next": "decap_cpu_header",
-                    "false_next": "_condition_1"
-                },
-                {
-                    "name": "_condition_1",
-                    "id": 1,
-                    "expression": {
-                        "type": "expression",
-                        "value": {
-                            "op": "valid",
-                            "left": null,
-                            "right": {
-                                "type": "header",
-                                "value": "arp"
-                            }
-                        }
-                    },
-                    "true_next": "send_arp_to_cpu",
-                    "false_next": "_condition_2"
-                },
-                {
-                    "name": "_condition_2",
-                    "id": 2,
-                    "expression": {
-                        "type": "expression",
-                        "value": {
-                            "op": "and",
-                            "left": {
-                                "type": "expression",
-                                "value": {
-                                    "op": "valid",
-                                    "left": null,
-                                    "right": {
-                                        "type": "header",
-                                        "value": "ipv4"
-                                    }
-                                }
-                            },
-                            "right": {
-                                "type": "expression",
-                                "value": {
-                                    "op": ">",
-                                    "left": {
-                                        "type": "field",
-                                        "value": [
-                                            "ipv4",
-                                            "ttl"
-                                        ]
-                                    },
-                                    "right": {
-                                        "type": "hexstr",
-                                        "value": "0x0"
-                                    }
-                                }
-                            }
-                        }
-                    },
-                    "true_next": "ipv4_lpm",
-                    "false_next": null
-                }
-            ]
+            "conditionals": []
         },
         {
             "name": "egress",
             "id": 1,
-            "init_table": "_condition_10003",
+            "init_table": "_condition_10000",
             "tables": [
                 {
                     "name": "send_frame",
@@ -869,8 +794,8 @@
             "action_profiles": [],
             "conditionals": [
                 {
-                    "name": "_condition_10003",
-                    "id": 3,
+                    "name": "_condition_10000",
+                    "id": 0,
                     "expression": {
                         "type": "expression",
                         "value": {

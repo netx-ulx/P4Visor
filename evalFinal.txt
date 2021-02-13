@@ -1,37 +1,35 @@
 BEFORE THE MERGE
 ----------------HEADERS-------------------- 
 Number of headers of program flowlet.p4: 6
-Number of headers of program simple_router.p4: 3
-Number of headers of program mtag-edge.p4: 6
+Number of headers of program portKnockFirewall.p4: 5
+Number of headers of program heavy_hitter.p4: 5
 ----------------STATES--------------------- 
 Number of states of program flowlet.p4: 4
-Number of states of program simple_router.p4: 3
-Number of states of program mtag-edge.p4: 5
+Number of states of program portKnockFirewall.p4: 4
+Number of states of program heavy_hitter.p4: 4
 --------------TRANSITIONS------------------ 
 Number of transitions of program flowlet.p4: 6
-Number of transitions of program simple_router.p4: 4
-Number of transitions of program mtag-edge.p4: 10
+Number of transitions of program portKnockFirewall.p4: 6
+Number of transitions of program heavy_hitter.p4: 6
 --------------SELECT SIZE------------------ 
 Max, min and average select width of program flowlet.p4: 16 | 8 | 12
-Max, min and average select width of program simple_router.p4: 16 | 16 | 16
-Max, min and average select width of program mtag-edge.p4: 16 | 16 | 16
+Max, min and average select width of program portKnockFirewall.p4: 16 | 8 | 12
+Max, min and average select width of program heavy_hitter.p4: 16 | 8 | 12
 
  
 
 
 AFTER THE MERGE
 ----------------HEADERS-------------------- 
-Number of headers of merged program: 11
+Number of headers of merged program: 10
 ----------------STATES--------------------- 
-Number of states of merged program: 6
+Number of states of merged program: 4
 --------------TRANSITIONS------------------ 
-Number of transitions of merged program: 12
+Number of transitions of merged program: 6
 --------------SELECT SIZE------------------ 
-Max, min and average select width of merged program: 20 | 12 | 16
+Max, min and average select width of merged program: 16 | 8 | 12
 
 STATE IDS: 
 parse_ethernet : 0
 parse_ipv4 : 1
 parse_tcp : 2
-vlan : 3
-mtag : 4

@@ -232,8 +232,24 @@
             "max_length": null
         },
         {
-            "name": "upvn_t",
+            "name": "flow_metadata_t",
             "id": 6,
+            "fields": [
+                [
+                    "flow_status",
+                    8
+                ],
+                [
+                    "index",
+                    16
+                ]
+            ],
+            "length_exp": null,
+            "max_length": null
+        },
+        {
+            "name": "upvn_t",
+            "id": 7,
             "fields": [
                 [
                     "pvid",
@@ -253,7 +269,7 @@
         },
         {
             "name": "upvn_metadata_t",
-            "id": 7,
+            "id": 8,
             "fields": [
                 [
                     "p_map",
@@ -264,8 +280,20 @@
             "max_length": null
         },
         {
+            "name": "custom_metadata_t",
+            "id": 9,
+            "fields": [
+                [
+                    "nhop_ipv4",
+                    32
+                ]
+            ],
+            "length_exp": null,
+            "max_length": null
+        },
+        {
             "name": "vlan_t",
-            "id": 8,
+            "id": 10,
             "fields": [
                 [
                     "pcp",
@@ -289,7 +317,7 @@
         },
         {
             "name": "mTag_t",
-            "id": 9,
+            "id": 11,
             "fields": [
                 [
                     "up1",
@@ -310,42 +338,6 @@
                 [
                     "ethertype",
                     16
-                ]
-            ],
-            "length_exp": null,
-            "max_length": null
-        },
-        {
-            "name": "local_metadata_t",
-            "id": 10,
-            "fields": [
-                [
-                    "cpu_code",
-                    16
-                ],
-                [
-                    "port_type",
-                    4
-                ],
-                [
-                    "ingress_error",
-                    1
-                ],
-                [
-                    "was_mtagged",
-                    1
-                ],
-                [
-                    "copy_to_cpu",
-                    1
-                ],
-                [
-                    "bad_packet",
-                    1
-                ],
-                [
-                    "color",
-                    8
                 ]
             ],
             "length_exp": null,
@@ -390,34 +382,40 @@
             "metadata": true
         },
         {
-            "name": "upvn",
+            "name": "my_metadata",
             "id": 6,
+            "header_type": "flow_metadata_t",
+            "metadata": true
+        },
+        {
+            "name": "upvn",
+            "id": 7,
             "header_type": "upvn_t",
             "metadata": false
         },
         {
             "name": "upvn_metadata",
-            "id": 7,
+            "id": 8,
             "header_type": "upvn_metadata_t",
             "metadata": true
         },
         {
+            "name": "custom_metadata",
+            "id": 9,
+            "header_type": "custom_metadata_t",
+            "metadata": true
+        },
+        {
             "name": "vlan",
-            "id": 8,
+            "id": 10,
             "header_type": "vlan_t",
             "metadata": false
         },
         {
             "name": "mtag",
-            "id": 9,
+            "id": 11,
             "header_type": "mTag_t",
             "metadata": false
-        },
-        {
-            "name": "local_metadata",
-            "id": 10,
-            "header_type": "local_metadata_t",
-            "metadata": true
         }
     ],
     "header_stacks": [],
@@ -515,7 +513,7 @@
                     "transitions": [
                         {
                             "type": "hexstr",
-                            "value": "0x028100",
+                            "value": "0x048100",
                             "mask": "0x0fffff",
                             "next_state": "vlan"
                         },
@@ -749,6 +747,18 @@
                             "next_state": "parse_tcp"
                         },
                         {
+                            "type": "hexstr",
+                            "value": "0x0f06",
+                            "mask": "0x0fff",
+                            "next_state": "parse_tcp"
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x0206",
+                            "mask": "0x0fff",
+                            "next_state": "parse_tcp"
+                        },
+                        {
                             "type": "default",
                             "value": null,
                             "mask": null,
@@ -833,8 +843,151 @@
     "meter_arrays": [],
     "actions": [
         {
-            "name": "lookup_flowlet_map_SHADOW",
+            "name": "set_ecmp_select_SHADOW",
             "id": 0,
+            "runtime_data": [
+                {
+                    "name": "ecmp_base",
+                    "bitwidth": 14
+                },
+                {
+                    "name": "ecmp_count",
+                    "bitwidth": 14
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "modify_field_with_hash_based_offset",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ingress_metadata",
+                                "ecmp_offset"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        },
+                        {
+                            "type": "calculation",
+                            "value": "flowlet_ecmp_hash"
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "_drop_SHADOW",
+            "id": 1,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "drop",
+                    "parameters": []
+                }
+            ]
+        },
+        {
+            "name": "set_nhop_SHADOW",
+            "id": 2,
+            "runtime_data": [
+                {
+                    "name": "nhop_ipv4",
+                    "bitwidth": 32
+                },
+                {
+                    "name": "port",
+                    "bitwidth": 9
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ingress_metadata",
+                                "nhop_ipv4"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        }
+                    ]
+                },
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "standard_metadata",
+                                "egress_spec"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 1
+                        }
+                    ]
+                },
+                {
+                    "op": "add_to_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ipv4",
+                                "ttl"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "-0x1"
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "rewrite_mac_SHADOW",
+            "id": 3,
+            "runtime_data": [
+                {
+                    "name": "smac",
+                    "bitwidth": 48
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "srcAddr"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "lookup_flowlet_map_SHADOW",
+            "id": 4,
             "runtime_data": [],
             "primitives": [
                 {
@@ -971,225 +1124,8 @@
             ]
         },
         {
-            "name": "update_flowlet_id_SHADOW",
-            "id": 1,
-            "runtime_data": [],
-            "primitives": [
-                {
-                    "op": "add_to_field",
-                    "parameters": [
-                        {
-                            "type": "field",
-                            "value": [
-                                "ingress_metadata",
-                                "flowlet_id"
-                            ]
-                        },
-                        {
-                            "type": "hexstr",
-                            "value": "0x1"
-                        }
-                    ]
-                },
-                {
-                    "op": "register_write",
-                    "parameters": [
-                        {
-                            "type": "register_array",
-                            "value": "flowlet_id_SHADOW"
-                        },
-                        {
-                            "type": "field",
-                            "value": [
-                                "ingress_metadata",
-                                "flowlet_map_index"
-                            ]
-                        },
-                        {
-                            "type": "field",
-                            "value": [
-                                "ingress_metadata",
-                                "flowlet_id"
-                            ]
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "set_ecmp_select_SHADOW",
-            "id": 2,
-            "runtime_data": [
-                {
-                    "name": "ecmp_base",
-                    "bitwidth": 14
-                },
-                {
-                    "name": "ecmp_count",
-                    "bitwidth": 14
-                }
-            ],
-            "primitives": [
-                {
-                    "op": "modify_field_with_hash_based_offset",
-                    "parameters": [
-                        {
-                            "type": "field",
-                            "value": [
-                                "ingress_metadata",
-                                "ecmp_offset"
-                            ]
-                        },
-                        {
-                            "type": "runtime_data",
-                            "value": 0
-                        },
-                        {
-                            "type": "calculation",
-                            "value": "flowlet_ecmp_hash"
-                        },
-                        {
-                            "type": "runtime_data",
-                            "value": 1
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "rewrite_mac_SHADOW",
-            "id": 3,
-            "runtime_data": [
-                {
-                    "name": "smac",
-                    "bitwidth": 48
-                }
-            ],
-            "primitives": [
-                {
-                    "op": "modify_field",
-                    "parameters": [
-                        {
-                            "type": "field",
-                            "value": [
-                                "ethernet",
-                                "srcAddr"
-                            ]
-                        },
-                        {
-                            "type": "runtime_data",
-                            "value": 0
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "_drop_SHADOW",
-            "id": 4,
-            "runtime_data": [],
-            "primitives": [
-                {
-                    "op": "drop",
-                    "parameters": []
-                }
-            ]
-        },
-        {
-            "name": "set_nhop_SHADOW",
-            "id": 5,
-            "runtime_data": [
-                {
-                    "name": "nhop_ipv4",
-                    "bitwidth": 32
-                },
-                {
-                    "name": "port",
-                    "bitwidth": 9
-                }
-            ],
-            "primitives": [
-                {
-                    "op": "modify_field",
-                    "parameters": [
-                        {
-                            "type": "field",
-                            "value": [
-                                "ingress_metadata",
-                                "nhop_ipv4"
-                            ]
-                        },
-                        {
-                            "type": "runtime_data",
-                            "value": 0
-                        }
-                    ]
-                },
-                {
-                    "op": "modify_field",
-                    "parameters": [
-                        {
-                            "type": "field",
-                            "value": [
-                                "standard_metadata",
-                                "egress_spec"
-                            ]
-                        },
-                        {
-                            "type": "runtime_data",
-                            "value": 1
-                        }
-                    ]
-                },
-                {
-                    "op": "add_to_field",
-                    "parameters": [
-                        {
-                            "type": "field",
-                            "value": [
-                                "ipv4",
-                                "ttl"
-                            ]
-                        },
-                        {
-                            "type": "hexstr",
-                            "value": "-0x1"
-                        }
-                    ]
-                }
-            ]
-        },
-        {
-            "name": "set_dmac_SHADOW",
-            "id": 6,
-            "runtime_data": [
-                {
-                    "name": "dmac",
-                    "bitwidth": 48
-                }
-            ],
-            "primitives": [
-                {
-                    "op": "modify_field",
-                    "parameters": [
-                        {
-                            "type": "field",
-                            "value": [
-                                "ethernet",
-                                "dstAddr"
-                            ]
-                        },
-                        {
-                            "type": "runtime_data",
-                            "value": 0
-                        }
-                    ]
-                }
-            ]
-        },
-        {
             "name": "set_nhop",
-            "id": 7,
+            "id": 5,
             "runtime_data": [
                 {
                     "name": "port",
@@ -1228,6 +1164,80 @@
                             "value": [
                                 "upvn_metadata",
                                 "p_map"
+                            ]
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "set_dmac_SHADOW",
+            "id": 6,
+            "runtime_data": [
+                {
+                    "name": "dmac",
+                    "bitwidth": 48
+                }
+            ],
+            "primitives": [
+                {
+                    "op": "modify_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ethernet",
+                                "dstAddr"
+                            ]
+                        },
+                        {
+                            "type": "runtime_data",
+                            "value": 0
+                        }
+                    ]
+                }
+            ]
+        },
+        {
+            "name": "update_flowlet_id_SHADOW",
+            "id": 7,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "add_to_field",
+                    "parameters": [
+                        {
+                            "type": "field",
+                            "value": [
+                                "ingress_metadata",
+                                "flowlet_id"
+                            ]
+                        },
+                        {
+                            "type": "hexstr",
+                            "value": "0x1"
+                        }
+                    ]
+                },
+                {
+                    "op": "register_write",
+                    "parameters": [
+                        {
+                            "type": "register_array",
+                            "value": "flowlet_id_SHADOW"
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ingress_metadata",
+                                "flowlet_map_index"
+                            ]
+                        },
+                        {
+                            "type": "field",
+                            "value": [
+                                "ingress_metadata",
+                                "flowlet_id"
                             ]
                         }
                     ]
@@ -1456,6 +1466,20 @@
                 }
             ],
             "algo": "crc16"
+        },
+        {
+            "name": "src_ip_hash",
+            "id": 3,
+            "input": [
+                {
+                    "type": "field",
+                    "value": [
+                        "ipv4",
+                        "srcAddr"
+                    ]
+                }
+            ],
+            "algo": "crc16"
         }
     ],
     "checksums": [
@@ -1475,15 +1499,21 @@
     "field_lists": [],
     "counter_arrays": [
         {
-            "name": "pkts_by_dest",
+            "name": "ip_src_counter",
             "id": 0,
+            "is_direct": false,
+            "size": 1024
+        },
+        {
+            "name": "pkts_by_dest",
+            "id": 1,
             "is_direct": true,
             "binding": "mTag_table",
             "size": 20000
         },
         {
             "name": "bytes_by_dest",
-            "id": 1,
+            "id": 2,
             "is_direct": true,
             "binding": "mTag_table",
             "size": 20000
@@ -1501,6 +1531,12 @@
             "id": 1,
             "bitwidth": 16,
             "size": 8192
+        },
+        {
+            "name": "flow_status",
+            "id": 2,
+            "bitwidth": 8,
+            "size": 512
         }
     ],
     "force_arith": [

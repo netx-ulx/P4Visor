@@ -363,8 +363,19 @@
     "meter_arrays": [],
     "actions": [
         {
-            "name": "send",
+            "name": "_drop",
             "id": 0,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "drop",
+                    "parameters": []
+                }
+            ]
+        },
+        {
+            "name": "send",
+            "id": 1,
             "runtime_data": [],
             "primitives": [
                 {
@@ -375,7 +386,7 @@
         },
         {
             "name": "forward_or_drop",
-            "id": 1,
+            "id": 2,
             "runtime_data": [
                 {
                     "name": "next_state",
@@ -422,17 +433,6 @@
                             "value": 1
                         }
                     ]
-                }
-            ]
-        },
-        {
-            "name": "_drop",
-            "id": 2,
-            "runtime_data": [],
-            "primitives": [
-                {
-                    "op": "drop",
-                    "parameters": []
                 }
             ]
         },

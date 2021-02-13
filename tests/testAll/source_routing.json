@@ -210,8 +210,19 @@
     "meter_arrays": [],
     "actions": [
         {
-            "name": "route_SHADOW",
+            "name": "_drop_SHADOW",
             "id": 0,
+            "runtime_data": [],
+            "primitives": [
+                {
+                    "op": "drop",
+                    "parameters": []
+                }
+            ]
+        },
+        {
+            "name": "route_SHADOW",
+            "id": 1,
             "runtime_data": [],
             "primitives": [
                 {
@@ -257,17 +268,6 @@
                             "value": "easyroute_port"
                         }
                     ]
-                }
-            ]
-        },
-        {
-            "name": "_drop_SHADOW",
-            "id": 1,
-            "runtime_data": [],
-            "primitives": [
-                {
-                    "op": "drop",
-                    "parameters": []
                 }
             ]
         }

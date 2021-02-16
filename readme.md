@@ -59,14 +59,13 @@ The script must be used with the following input arguments:
 ```
 
 
-This will generate the merged JSON file and the visual representation of the graphs and store them in the directory specified in `--gen_dir`.
-Additionally, a file named `evalFinal.txt` will be created and stored at the project's root directory, containing useful information regarding the amount of resources used by the parser graph in the merged program.
+The execution of this script will generate the merged JSON file and the visual representation of the graphs and store them into the directory specified with `--gen_dir`. Additionally, a file named `evalFinal.txt` will be created and stored at the project's root directory, containing useful information regarding the amount of resources used by the parser graph in the merged program.
 
 
 # Merge Example
 
-To illustrate how the merging of multiple programs is achieved, we provide the following example which merges three P4 programs (flowlet.p4, portKnockFirewall.p4, heavy_hitter.p4).
-We first create a directory on the project's root, called `example`, wherein we place our three programs. Afterwards, to merge the programs, we use the following command in a terminal opened at the level of the project's root directory:
+To illustrate how the merging of multiple programs is achieved, we provide the following example which merges three P4 programs (flowlet.p4, portKnockFirewall.p4, heavy_hitter.p4, which are available under the folder 'tests/testAll/').
+We first create a directory on the project's root, called `example`, wherein we copy our three programs. Afterwards, to merge the programs, we use the following command in a terminal opened at the level of the project's root directory:
 
 ```
 python ShadowP4c-bmv2.py --real_source   example/portKnockFirewall.p4  
@@ -105,7 +104,7 @@ python ShadowP4c-bmv2.py --real_source   tests/testAll/mtag-edge.p4
 ```
 
 
-Additionally, the merge sequence for all the ten programs in those sets is the following:
+Additionally, the merge sequence for all the programs in our test-set is the following:
 ```
 python ShadowP4c-bmv2.py --real_source   tests/testAll/simple_router_with_arp.p4  
 --shadow_source tests/testAll/source_routing.p4  --json_mg tests/testAll/merged.json 
@@ -116,6 +115,5 @@ tests/testAll/mc_nat.p4 tests/testAll/flowlet.p4  --gen-fig --gen_dir tests/test
 
 # Contacts
 
-If you have any questions, you can reach me (Duarte Sequeira) at:
-      email - dudaxsek97@gmail.com
+If you have any questions, you can reach me (Duarte Sequeira) at dudaxsek97@gmail.com
 
